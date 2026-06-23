@@ -1,0 +1,628 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--color-background-tertiary);min-height:100vh}
+.app{max-width:430px;margin:0 auto;padding:0 0 60px}
+.header{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:13px 16px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px}
+.header-back{width:30px;height:30px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--color-text-secondary);flex-shrink:0}
+.header-info{flex:1;min-width:0}
+.header-info h1{font-size:16px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-info p{font-size:12px;color:var(--color-text-secondary)}
+.tabs{display:flex;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:0 16px}
+.tab{flex:1;padding:10px 0;font-size:13px;font-weight:500;color:var(--color-text-secondary);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:#1D9E75;border-bottom-color:#1D9E75}
+.view{display:none;padding:16px}
+.view.active{display:block}
+.btn-primary{width:100%;padding:13px;background:#1D9E75;color:#fff;border:none;border-radius:var(--border-radius-lg);font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.btn-primary:active{transform:scale(0.98)}
+.btn-secondary{width:100%;padding:11px;background:none;color:#1D9E75;border:0.5px solid #1D9E75;border-radius:var(--border-radius-lg);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.proj-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:10px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.proj-card:active{transform:scale(0.98)}
+.proj-icon{width:40px;height:40px;border-radius:var(--border-radius-md);background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.proj-info{flex:1;min-width:0}
+.proj-info strong{font-size:14px;font-weight:500;color:var(--color-text-primary);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-info span{font-size:12px;color:var(--color-text-secondary)}
+.proj-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-icon{width:30px;height:30px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--color-text-secondary)}
+.btn-icon.del{color:#E24B4A;border-color:#F7C1C1}
+.door-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:10px;overflow:hidden}
+.door-card-header{display:flex;align-items:center;padding:12px 14px;cursor:pointer;gap:10px}
+.door-num{width:32px;height:32px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#0F6E56;flex-shrink:0}
+.door-title{flex:1;min-width:0}
+.door-title strong{font-size:14px;font-weight:500;color:var(--color-text-primary);display:block}
+.door-title span{font-size:12px;color:var(--color-text-secondary)}
+.door-body{padding:0 14px 14px;border-top:0.5px solid var(--color-border-tertiary)}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px;display:flex;align-items:center;gap:5px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.field-row.full{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;color:var(--color-text-secondary)}
+.field input,.field select,.field textarea{font-size:14px;padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);width:100%}
+.field textarea{resize:none;height:56px;font-family:var(--font-sans)}
+.field-unit{position:relative}
+.field-unit input{padding-right:28px}
+.field-unit .unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--color-text-secondary);pointer-events:none}
+.toggle-group{display:flex;gap:6px}
+.toggle-btn{flex:1;padding:9px 6px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;font-size:13px;font-weight:500;color:var(--color-text-secondary);cursor:pointer;text-align:center}
+.toggle-btn.active{background:#E1F5EE;border-color:#1D9E75;color:#0F6E56}
+.direction-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--border-radius-md);background:#E1F5EE;font-size:12px;font-weight:500;color:#085041;margin-top:8px}
+.custom-reveal{margin-top:5px;display:none}
+.custom-reveal input{font-size:13px;padding:6px 10px;border:0.5px solid #1D9E75;border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);width:100%}
+.empty-state{text-align:center;padding:40px 20px;color:var(--color-text-secondary)}
+.empty-state i{font-size:40px;display:block;margin-bottom:12px;color:var(--color-border-secondary)}
+.empty-state p{font-size:14px}
+.count-badge{background:#E1F5EE;color:#0F6E56;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:500}
+.table-wrap{overflow-x:auto;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary)}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:560px}
+thead th{background:#E1F5EE;padding:8px 10px;text-align:left;font-weight:500;color:#085041;border-bottom:0.5px solid #9FE1CB}
+tbody td{padding:8px 10px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:top;background:var(--color-background-primary)}
+tbody tr:last-child td{border-bottom:none}
+.td-num{font-weight:500;color:#0F6E56}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500}
+.tag-in{background:#E1F5EE;color:#0F6E56}
+.tag-out{background:#FAECE7;color:#993C1D}
+.sub-row td{background:var(--color-background-secondary) !important}
+.sub-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:11px}
+.sub-item label{color:var(--color-text-secondary)}
+.sub-item span{color:var(--color-text-primary);font-weight:500}
+.btn-export{width:100%;padding:13px;background:#1D9E75;color:#fff;border:none;border-radius:var(--border-radius-lg);font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px}
+.modal-bg{display:none;min-height:300px;background:rgba(0,0,0,0.45);border-radius:var(--border-radius-lg);align-items:center;justify-content:center;padding:20px;margin-bottom:12px}
+.modal-bg.open{display:flex}
+.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:20px;width:100%;max-width:320px}
+.modal h2{font-size:16px;font-weight:500;margin-bottom:14px;color:var(--color-text-primary)}
+.modal input{font-size:14px;padding:10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);width:100%;margin-bottom:12px}
+.modal-btns{display:flex;gap:8px}
+.modal-btns button{flex:1;padding:10px;border-radius:var(--border-radius-md);font-size:14px;font-weight:500;cursor:pointer;border:none}
+.modal-cancel{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.modal-confirm{background:#1D9E75;color:#fff}
+.mocheta-diagram{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;margin-bottom:10px}
+.mocheta-svg{display:block;margin:0 auto}
+</style>
+
+<div class="app" id="app">
+
+  <div id="modal-area">
+    <div class="modal-bg" id="modal-new-proj">
+      <div class="modal">
+        <h2 id="modal-title">Nuevo proyecto</h2>
+        <input type="text" id="modal-proj-name" placeholder="Nombre del proyecto..." maxlength="50">
+        <div class="modal-btns">
+          <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+          <button class="modal-confirm" onclick="confirmProject()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-projects">
+    <div class="header">
+      <div class="header-info">
+        <h1>Mis proyectos</h1>
+        <p id="proj-count-label">Sin proyectos guardados</p>
+      </div>
+    </div>
+    <div class="view active" style="display:block">
+      <button class="btn-primary" onclick="openNewProjectModal()"><i class="ti ti-folder-plus" aria-hidden="true"></i> Nuevo proyecto</button>
+      <div id="projects-list"></div>
+    </div>
+  </div>
+
+  <div id="screen-doors" style="display:none">
+    <div class="header">
+      <button class="header-back" onclick="goHome()" aria-label="Volver"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+      <div class="header-info">
+        <h1 id="proj-title-header">Proyecto</h1>
+        <p id="proj-subtitle-header">0 puertas</p>
+      </div>
+      <button class="btn-icon" onclick="openRenameModal()" aria-label="Renombrar"><i class="ti ti-edit" aria-hidden="true"></i></button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('cards')"><i class="ti ti-door" aria-hidden="true"></i> Puertas</button>
+      <button class="tab" onclick="switchTab('table')"><i class="ti ti-table" aria-hidden="true"></i> Tabla</button>
+      <button class="tab" onclick="switchTab('export')"><i class="ti ti-file-text" aria-hidden="true"></i> Exportar</button>
+    </div>
+    <div class="view active" id="view-cards">
+      <button class="btn-primary" onclick="addDoor()"><i class="ti ti-plus" aria-hidden="true"></i> Agregar puerta</button>
+      <div id="doors-list"></div>
+    </div>
+    <div class="view" id="view-table"><div id="table-container"></div></div>
+    <div class="view" id="view-export"><div id="export-preview"></div><button class="btn-export" onclick="exportPDF()"><i class="ti ti-download" aria-hidden="true"></i> Descargar PDF</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+let projects = [];
+let currentProjId = null;
+let editingProjId = null;
+let doorCounter = 0;
+
+const TIPOS = ['Full Glass','Diseñada','Personalizado'];
+const CALIDADES = ['Light','Heavy','Heavy Duty','Personalizado'];
+const GLASS = ['Clear','Bronce','Gris ahumado','Esmerilado','Laminado','Templado','Sin cristal','Personalizado'];
+const COLORS = ['Blanco','Negro','Champagne','Bronce','Plata','Gris oscuro','Madera natural','Personalizado'];
+
+function save(){
+  try{ window.storage.set('door_projects_v3', JSON.stringify(projects)); }catch(e){}
+  try{ localStorage.setItem('door_projects_v3', JSON.stringify(projects)); }catch(e){}
+}
+
+async function load(){
+  let data = null;
+  try{
+    const r = await window.storage.get('door_projects_v3');
+    if(r) data = r.value;
+  }catch(e){}
+  if(!data){
+    try{ data = localStorage.getItem('door_projects_v3'); }catch(e){}
+  }
+  if(data){
+    try{
+      projects = JSON.parse(data);
+      doorCounter = Math.max(0,...projects.flatMap(p=>p.doors.map(d=>d.num)));
+      if(!isFinite(doorCounter)) doorCounter=0;
+    }catch(e){ projects=[]; }
+  }
+  renderProjects();
+}
+
+function currentProject(){ return projects.find(p=>p.id===currentProjId); }
+
+function openNewProjectModal(){
+  editingProjId = null;
+  document.getElementById('modal-title').textContent = 'Nuevo proyecto';
+  document.getElementById('modal-proj-name').value = '';
+  document.getElementById('modal-new-proj').classList.add('open');
+  setTimeout(()=>document.getElementById('modal-proj-name').focus(),50);
+}
+
+function openRenameModal(){
+  const p = currentProject();
+  if(!p) return;
+  editingProjId = p.id;
+  document.getElementById('modal-title').textContent = 'Renombrar proyecto';
+  document.getElementById('modal-proj-name').value = p.name;
+  document.getElementById('modal-new-proj').classList.add('open');
+  setTimeout(()=>document.getElementById('modal-proj-name').focus(),50);
+}
+
+function closeModal(){
+  document.getElementById('modal-new-proj').classList.remove('open');
+  document.getElementById('modal-proj-name').value='';
+}
+
+function confirmProject(){
+  const name = document.getElementById('modal-proj-name').value.trim();
+  if(!name) return;
+  if(editingProjId){
+    const p = projects.find(p=>p.id===editingProjId);
+    if(p){ p.name=name; save(); renderProjects(); updateProjHeader(); }
+  } else {
+    const p = { id: Date.now(), name, doors:[], created: new Date().toLocaleDateString('es-ES') };
+    projects.unshift(p);
+    save();
+    renderProjects();
+    openProject(p.id);
+  }
+  closeModal();
+}
+
+document.getElementById('modal-proj-name').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmProject(); if(e.key==='Escape') closeModal(); });
+
+function deleteProject(id, e){
+  e.stopPropagation();
+  if(!confirm('¿Eliminar este proyecto y todas sus puertas?')) return;
+  projects = projects.filter(p=>p.id!==id);
+  save();
+  renderProjects();
+}
+
+function renderProjects(){
+  const list = document.getElementById('projects-list');
+  const label = document.getElementById('proj-count-label');
+  label.textContent = projects.length ? `${projects.length} proyecto${projects.length!==1?'s':''}` : 'Sin proyectos guardados';
+  if(!projects.length){
+    list.innerHTML='<div class="empty-state"><i class="ti ti-folder-off" aria-hidden="true"></i><p>Crea tu primer proyecto para empezar.</p></div>';
+    return;
+  }
+  list.innerHTML = projects.map(p=>`
+    <div class="proj-card" onclick="openProject(${p.id})">
+      <div class="proj-icon"><i class="ti ti-folder" style="color:#0F6E56;font-size:20px" aria-hidden="true"></i></div>
+      <div class="proj-info">
+        <strong>${p.name}</strong>
+        <span>${p.doors.length} puerta${p.doors.length!==1?'s':''} · ${p.created}</span>
+      </div>
+      <div class="proj-actions" onclick="event.stopPropagation()">
+        <button class="btn-icon" onclick="openProject(${p.id})" aria-label="Abrir"><i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        <button class="btn-icon del" onclick="deleteProject(${p.id},event)" aria-label="Eliminar"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openProject(id){
+  currentProjId = id;
+  document.getElementById('screen-projects').style.display='none';
+  document.getElementById('screen-doors').style.display='block';
+  updateProjHeader();
+  switchTab('cards');
+}
+
+function goHome(){
+  currentProjId = null;
+  document.getElementById('screen-doors').style.display='none';
+  document.getElementById('screen-projects').style.display='block';
+  renderProjects();
+}
+
+function updateProjHeader(){
+  const p = currentProject();
+  if(!p) return;
+  document.getElementById('proj-title-header').textContent = p.name;
+  document.getElementById('proj-subtitle-header').textContent = `${p.doors.length} puerta${p.doors.length!==1?'s':''}`;
+}
+
+function addDoor(){
+  const p = currentProject(); if(!p) return;
+  doorCounter++;
+  const id = Date.now();
+  p.doors.push({
+    id, num: p.doors.length+1,
+    altoIzq:'', altoDer:'', largoAbajo:'', largoArriba:'', anchoMocheta:'',
+    tipo:'', calidad:'', tipoCustom:'', calidadCustom:'', obs:'',
+    apertura:'IN', bisagra:'DERECHA',
+    cristal:'', colorMarco:'', colorPuerta:'', colorAdapters:'', colorIntermedios:'', diseno:'', notas:'',
+    cristalCustom:'', marcoCustom:'', puertaCustom:'', adaptersCustom:'', intermediosCustom:''
+  });
+  save();
+  renderDoors();
+  updateProjHeader();
+  setTimeout(()=>{ const el=document.getElementById('door-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'}); },100);
+}
+
+function removeDoor(id){
+  const p=currentProject(); if(!p) return;
+  p.doors=p.doors.filter(d=>d.id!==id);
+  p.doors.forEach((d,i)=>d.num=i+1);
+  save();
+  renderDoors();
+  updateProjHeader();
+}
+
+function setField(id,field,val){
+  const p=currentProject(); if(!p) return;
+  const d=p.doors.find(d=>d.id===id);
+  if(d){ d[field]=val; save(); updateDoorSummary(id); }
+}
+
+function handleSelect(id,field,val,customField,customId){
+  setField(id,field,val);
+  const el=document.getElementById(customId);
+  if(el) el.style.display=val==='Personalizado'?'block':'none';
+  if(val!=='Personalizado') setField(id,customField,'');
+}
+
+function setToggle(id,field,val){
+  const p=currentProject(); if(!p) return;
+  const d=p.doors.find(d=>d.id===id);
+  if(d){
+    d[field]=val; save();
+    document.querySelectorAll(`[data-tog="${id}-${field}"]`).forEach(b=>b.classList.toggle('active',b.dataset.val===val));
+    updateDoorSummary(id);
+    if(field==='apertura'||field==='bisagra') updateDirBadge(id);
+  }
+}
+
+function dirLabel(d){ return `${d.apertura==='IN'?'Hacia adentro':'Hacia afuera'} · Bisagra ${d.bisagra.toLowerCase()}`; }
+
+function updateDirBadge(id){
+  const el=document.getElementById('dir-badge-'+id);
+  const p=currentProject();
+  const d=p&&p.doors.find(d=>d.id===id);
+  if(el&&d) el.textContent=dirLabel(d);
+}
+
+function updateDoorSummary(id){
+  const p=currentProject();
+  const d=p&&p.doors.find(d=>d.id===id);
+  if(!d) return;
+  const el=document.getElementById('door-summary-'+id);
+  const tipo=d.tipo==='Personalizado'&&d.tipoCustom?d.tipoCustom:d.tipo||'Sin tipo';
+  if(el) el.textContent=`Mocheta: ${d.altoIzq||'?'}"×${d.largoAbajo||'?'}" · ${tipo}`;
+  updateProjHeader();
+}
+
+function toggleExpand(id){
+  const body=document.getElementById('door-body-'+id);
+  const icon=document.getElementById('chevron-'+id);
+  const open=body.style.display==='block';
+  body.style.display=open?'none':'block';
+  icon.className=open?'ti ti-chevron-down':'ti ti-chevron-up';
+}
+
+function mkSelect(doorId, field, customField, opts, val, customVal){
+  const cid=`cr-${doorId}-${field}`;
+  const showC = val==='Personalizado';
+  return `<select onchange="handleSelect(${doorId},'${field}','${customField ? customField : ''}'+this.value,'${customField}','${cid}')">
+    <option value="">Seleccionar</option>
+    ${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}
+  </select>
+  <div class="custom-reveal" id="${cid}" style="${showC?'display:block':''}">
+    <input type="text" placeholder="Escribe aquí..." value="${customVal||''}" oninput="setField(${doorId},'${customField}',this.value)">
+  </div>`;
+}
+
+function mkSelectSimple(doorId, field, customField, opts, val, customVal){
+  const cid=`cr-${doorId}-${field}`;
+  const showC = val==='Personalizado';
+  return `<select onchange="handleSelectSimple(${doorId},'${field}','${customField}',this.value,'${cid}')">
+    <option value="">Seleccionar</option>
+    ${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}
+  </select>
+  <div class="custom-reveal" id="${cid}" style="${showC?'display:block':''}">
+    <input type="text" placeholder="Escribe aquí..." value="${customVal||''}" oninput="setField(${doorId},'${customField}',this.value)">
+  </div>`;
+}
+
+function handleSelectSimple(id,field,customField,val,cid){
+  setField(id,field,val);
+  const el=document.getElementById(cid);
+  if(el) el.style.display=val==='Personalizado'?'block':'none';
+  if(val!=='Personalizado') setField(id,customField,'');
+}
+
+function renderDoors(){
+  const p=currentProject();
+  const list=document.getElementById('doors-list');
+  if(!p||!p.doors.length){
+    list.innerHTML='<div class="empty-state"><i class="ti ti-door-off" aria-hidden="true"></i><p>Sin puertas. Toca "+ Agregar puerta".</p></div>';
+    return;
+  }
+  list.innerHTML=p.doors.map(d=>{
+    const tipoDisplay=d.tipo==='Personalizado'&&d.tipoCustom?d.tipoCustom:d.tipo||'Sin tipo';
+    return `
+    <div class="door-card" id="door-${d.id}">
+      <div class="door-card-header" onclick="toggleExpand(${d.id})">
+        <div class="door-num">${d.num}</div>
+        <div class="door-title">
+          <strong>Puerta ${d.num}</strong>
+          <span id="door-summary-${d.id}">Mocheta: ${d.altoIzq||'?'}"×${d.largoAbajo||'?'}" · ${tipoDisplay}</span>
+        </div>
+        <div style="display:flex;gap:5px" onclick="event.stopPropagation()">
+          <button class="btn-icon del" onclick="removeDoor(${d.id})" aria-label="Eliminar"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        </div>
+        <i class="ti ti-chevron-down" id="chevron-${d.id}" style="font-size:16px;color:var(--color-text-secondary)" aria-hidden="true"></i>
+      </div>
+      <div class="door-body" id="door-body-${d.id}" style="display:none">
+
+        <div class="section-label"><i class="ti ti-ruler-measure" aria-hidden="true" style="font-size:13px"></i> Medidas del vano</div>
+        <div class="mocheta-diagram">
+          <svg class="mocheta-svg" width="176" height="130" viewBox="0 0 176 130">
+            <rect x="28" y="12" width="120" height="106" rx="2" fill="none" stroke="#9FE1CB" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <rect x="40" y="24" width="96" height="82" rx="2" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+            <text x="88" y="66" text-anchor="middle" font-size="9" fill="#085041" font-family="sans-serif">VANO</text>
+            <line x1="16" y1="12" x2="16" y2="118" stroke="#1D9E75" stroke-width="1.5"/>
+            <line x1="12" y1="12" x2="20" y2="12" stroke="#1D9E75" stroke-width="1.5"/>
+            <line x1="12" y1="118" x2="20" y2="118" stroke="#1D9E75" stroke-width="1.5"/>
+            <text x="5" y="65" font-size="7.5" fill="#0F6E56" font-family="sans-serif" text-anchor="middle" transform="rotate(-90,5,65)">Alto Izq</text>
+            <line x1="160" y1="12" x2="160" y2="118" stroke="#1D9E75" stroke-width="1.5"/>
+            <line x1="156" y1="12" x2="164" y2="12" stroke="#1D9E75" stroke-width="1.5"/>
+            <line x1="156" y1="118" x2="164" y2="118" stroke="#1D9E75" stroke-width="1.5"/>
+            <text x="171" y="65" font-size="7.5" fill="#0F6E56" font-family="sans-serif" text-anchor="middle" transform="rotate(90,171,65)">Alto Der</text>
+            <line x1="28" y1="126" x2="148" y2="126" stroke="#1D9E75" stroke-width="1.5"/>
+            <line x1="28" y1="122" x2="28" y2="130" stroke="#1D9E75" stroke-width="1.5"/>
+            <line x1="148" y1="122" x2="148" y2="130" stroke="#1D9E75" stroke-width="1.5"/>
+            <text x="88" y="135" font-size="7.5" fill="#0F6E56" font-family="sans-serif" text-anchor="middle">Largo abajo</text>
+            <line x1="28" y1="5" x2="148" y2="5" stroke="#5DCAA5" stroke-width="1"/>
+            <line x1="28" y1="2" x2="28" y2="8" stroke="#5DCAA5" stroke-width="1"/>
+            <line x1="148" y1="2" x2="148" y2="8" stroke="#5DCAA5" stroke-width="1"/>
+            <text x="88" y="3" font-size="7" fill="#0F6E56" font-family="sans-serif" text-anchor="middle">Largo arriba</text>
+          </svg>
+        </div>
+
+        <div class="field-row">
+          <div class="field field-unit">
+            <label>Alto lado izquierdo</label>
+            <input type="number" step="0.125" placeholder='ej. 80"' value="${d.altoIzq}" oninput="setField(${d.id},'altoIzq',this.value)">
+            <span class="unit">"</span>
+          </div>
+          <div class="field field-unit">
+            <label>Alto lado derecho</label>
+            <input type="number" step="0.125" placeholder='ej. 80"' value="${d.altoDer}" oninput="setField(${d.id},'altoDer',this.value)">
+            <span class="unit">"</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field field-unit">
+            <label>Largo abajo</label>
+            <input type="number" step="0.125" placeholder='ej. 36"' value="${d.largoAbajo}" oninput="setField(${d.id},'largoAbajo',this.value)">
+            <span class="unit">"</span>
+          </div>
+          <div class="field field-unit">
+            <label>Largo arriba</label>
+            <input type="number" step="0.125" placeholder='ej. 36"' value="${d.largoArriba}" oninput="setField(${d.id},'largoArriba',this.value)">
+            <span class="unit">"</span>
+          </div>
+        </div>
+        <div class="field-row full">
+          <div class="field field-unit">
+            <label>Ancho de la mocheta</label>
+            <input type="number" step="0.125" placeholder='ej. 4"' value="${d.anchoMocheta}" oninput="setField(${d.id},'anchoMocheta',this.value)">
+            <span class="unit">"</span>
+          </div>
+        </div>
+
+        <div class="section-label"><i class="ti ti-adjustments" aria-hidden="true" style="font-size:13px"></i> Tipo y calidad</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Tipo de puerta</label>
+            ${mkSelectSimple(d.id,'tipo','tipoCustom',TIPOS,d.tipo,d.tipoCustom)}
+          </div>
+          <div class="field">
+            <label>Calidad aluminio</label>
+            ${mkSelectSimple(d.id,'calidad','calidadCustom',CALIDADES,d.calidad,d.calidadCustom)}
+          </div>
+        </div>
+
+        <div class="section-label"><i class="ti ti-door-enter" aria-hidden="true" style="font-size:13px"></i> Dirección de apertura</div>
+        <div style="margin-bottom:8px">
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:5px">Tipo</div>
+          <div class="toggle-group">
+            <button class="toggle-btn ${d.apertura==='IN'?'active':''}" data-tog="${d.id}-apertura" data-val="IN" onclick="setToggle(${d.id},'apertura','IN')">IN · Adentro</button>
+            <button class="toggle-btn ${d.apertura==='OUT'?'active':''}" data-tog="${d.id}-apertura" data-val="OUT" onclick="setToggle(${d.id},'apertura','OUT')">OUT · Afuera</button>
+          </div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:5px">Bisagras</div>
+          <div class="toggle-group">
+            <button class="toggle-btn ${d.bisagra==='IZQUIERDA'?'active':''}" data-tog="${d.id}-bisagra" data-val="IZQUIERDA" onclick="setToggle(${d.id},'bisagra','IZQUIERDA')">Izquierda</button>
+            <button class="toggle-btn ${d.bisagra==='DERECHA'?'active':''}" data-tog="${d.id}-bisagra" data-val="DERECHA" onclick="setToggle(${d.id},'bisagra','DERECHA')">Derecha</button>
+          </div>
+        </div>
+        <div class="direction-badge" id="dir-badge-${d.id}"><i class="ti ti-door-enter" aria-hidden="true"></i>${dirLabel(d)}</div>
+
+        <div class="section-label"><i class="ti ti-palette" aria-hidden="true" style="font-size:13px"></i> Acabados y colores</div>
+        <div class="field-row">
+          <div class="field"><label>Tipo/color cristal</label>${mkSelectSimple(d.id,'cristal','cristalCustom',GLASS,d.cristal,d.cristalCustom)}</div>
+          <div class="field"><label>Color marco</label>${mkSelectSimple(d.id,'colorMarco','marcoCustom',COLORS,d.colorMarco,d.marcoCustom)}</div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Color puerta</label>${mkSelectSimple(d.id,'colorPuerta','puertaCustom',COLORS,d.colorPuerta,d.puertaCustom)}</div>
+          <div class="field"><label>Glass adapters</label>${mkSelectSimple(d.id,'colorAdapters','adaptersCustom',COLORS,d.colorAdapters,d.adaptersCustom)}</div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Color intermedios</label>${mkSelectSimple(d.id,'colorIntermedios','intermediosCustom',COLORS,d.colorIntermedios,d.intermediosCustom)}</div>
+          <div class="field"><label>Diseño / modelo</label><input type="text" placeholder="ej. Serie Milano" value="${d.diseno}" oninput="setField(${d.id},'diseno',this.value)"></div>
+        </div>
+
+        <div class="section-label"><i class="ti ti-notes" aria-hidden="true" style="font-size:13px"></i> Observaciones</div>
+        <div class="field-row full">
+          <div class="field"><label>Observaciones generales</label><textarea placeholder="Notas de instalación..." oninput="setField(${d.id},'obs',this.value)">${d.obs}</textarea></div>
+        </div>
+        <div class="field-row full">
+          <div class="field"><label>Notas de acabados</label><textarea placeholder="Detalles especiales..." oninput="setField(${d.id},'notas',this.value)">${d.notas}</textarea></div>
+        </div>
+      </div>
+    </div>`; }).join('');
+}
+
+function getDisplayVal(val, customVal){ return val==='Personalizado'&&customVal ? customVal : val||'—'; }
+
+function renderTable(){
+  const p=currentProject();
+  const c=document.getElementById('table-container');
+  if(!p||!p.doors.length){ c.innerHTML='<div class="empty-state"><i class="ti ti-table-off" aria-hidden="true"></i><p>Agrega puertas para ver la tabla.</p></div>'; return; }
+  c.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Alto Izq/Der</th><th>Abajo/Arriba</th><th>Mocheta</th><th>Tipo</th><th>Calidad</th><th>Apertura</th><th>Cristal</th><th>Marco</th></tr></thead>
+    <tbody>${p.doors.map(d=>`
+      <tr>
+        <td class="td-num">${d.num}</td>
+        <td>${d.altoIzq||'—'}" / ${d.altoDer||'—'}"</td>
+        <td>${d.largoAbajo||'—'}" / ${d.largoArriba||'—'}"</td>
+        <td>${d.anchoMocheta||'—'}"</td>
+        <td>${getDisplayVal(d.tipo,d.tipoCustom)}</td>
+        <td>${getDisplayVal(d.calidad,d.calidadCustom)}</td>
+        <td><span class="tag tag-${d.apertura.toLowerCase()}">${d.apertura}</span> ${d.bisagra}</td>
+        <td>${getDisplayVal(d.cristal,d.cristalCustom)}</td>
+        <td>${getDisplayVal(d.colorMarco,d.marcoCustom)}</td>
+      </tr>
+      ${(d.colorPuerta||d.colorAdapters||d.colorIntermedios||d.obs||d.notas||d.diseno)?`
+      <tr class="sub-row"><td colspan="9" style="padding:8px 10px">
+        <div class="sub-grid">
+          ${d.colorPuerta?`<div class="sub-item"><label>Color puerta: </label><span>${getDisplayVal(d.colorPuerta,d.puertaCustom)}</span></div>`:''}
+          ${d.colorAdapters?`<div class="sub-item"><label>Adapters: </label><span>${getDisplayVal(d.colorAdapters,d.adaptersCustom)}</span></div>`:''}
+          ${d.colorIntermedios?`<div class="sub-item"><label>Intermedios: </label><span>${getDisplayVal(d.colorIntermedios,d.intermediosCustom)}</span></div>`:''}
+          ${d.diseno?`<div class="sub-item"><label>Diseño: </label><span>${d.diseno}</span></div>`:''}
+          ${d.obs?`<div class="sub-item" style="grid-column:1/-1"><label>Obs: </label><span>${d.obs}</span></div>`:''}
+          ${d.notas?`<div class="sub-item" style="grid-column:1/-1"><label>Notas: </label><span>${d.notas}</span></div>`:''}
+        </div>
+      </td></tr>`:''}
+    `).join('')}</tbody></table></div>`;
+}
+
+function renderExport(){
+  const p=currentProject();
+  const c=document.getElementById('export-preview');
+  if(!p||!p.doors.length){ c.innerHTML='<div class="empty-state"><i class="ti ti-file-off" aria-hidden="true"></i><p>Agrega puertas para generar el reporte.</p></div>'; return; }
+  c.innerHTML=`<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center"><i class="ti ti-folder" style="color:#0F6E56;font-size:18px" aria-hidden="true"></i></div>
+      <div><strong style="font-size:15px">${p.name}</strong><br><span style="font-size:12px;color:var(--color-text-secondary)">${p.doors.length} puerta${p.doors.length!==1?'s':''} · ${p.created}</span></div>
+    </div>
+    ${p.doors.map(d=>`
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--color-border-tertiary)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="background:#E1F5EE;color:#085041;padding:2px 10px;border-radius:20px;font-size:13px;font-weight:500">Puerta ${d.num}</span>
+          ${d.diseno?`<span style="font-size:12px;color:var(--color-text-secondary)">${d.diseno}</span>`:''}
+          ${d.tipo?`<span style="font-size:11px;background:#E6F1FB;color:#185FA5;padding:2px 7px;border-radius:4px">${getDisplayVal(d.tipo,d.tipoCustom)}</span>`:''}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:12px">
+          <div><span style="color:var(--color-text-secondary)">Alto izq/der:</span> <strong>${d.altoIzq||'—'}" / ${d.altoDer||'—'}"</strong></div>
+          <div><span style="color:var(--color-text-secondary)">Abajo/arriba:</span> <strong>${d.largoAbajo||'—'}" / ${d.largoArriba||'—'}"</strong></div>
+          <div><span style="color:var(--color-text-secondary)">Mocheta:</span> ${d.anchoMocheta||'—'}"</div>
+          <div><span style="color:var(--color-text-secondary)">Calidad:</span> ${getDisplayVal(d.calidad,d.calidadCustom)}</div>
+          <div style="grid-column:1/-1"><span style="color:var(--color-text-secondary)">Apertura:</span> <strong>${d.apertura==='IN'?'Hacia adentro':'Hacia afuera'} · Bisagra ${d.bisagra.toLowerCase()}</strong></div>
+          <div><span style="color:var(--color-text-secondary)">Cristal:</span> ${getDisplayVal(d.cristal,d.cristalCustom)}</div>
+          <div><span style="color:var(--color-text-secondary)">Marco:</span> ${getDisplayVal(d.colorMarco,d.marcoCustom)}</div>
+          <div><span style="color:var(--color-text-secondary)">Color puerta:</span> ${getDisplayVal(d.colorPuerta,d.puertaCustom)}</div>
+          <div><span style="color:var(--color-text-secondary)">Adapters:</span> ${getDisplayVal(d.colorAdapters,d.adaptersCustom)}</div>
+          <div><span style="color:var(--color-text-secondary)">Intermedios:</span> ${getDisplayVal(d.colorIntermedios,d.intermediosCustom)}</div>
+        </div>
+        ${d.obs?`<div style="margin-top:7px;padding:6px 8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px"><span style="color:var(--color-text-secondary)">Obs: </span>${d.obs}</div>`:''}
+        ${d.notas?`<div style="margin-top:4px;padding:6px 8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px"><span style="color:var(--color-text-secondary)">Notas: </span>${d.notas}</div>`:''}
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const tabs=['cards','table','export'];
+  document.querySelectorAll('.tab')[tabs.indexOf(tab)].classList.add('active');
+  document.getElementById('view-'+tab).classList.add('active');
+  if(tab==='cards') renderDoors();
+  if(tab==='table') renderTable();
+  if(tab==='export') renderExport();
+}
+
+function exportPDF(){
+  const p=currentProject();
+  if(!p||!p.doors.length){ alert('Agrega puertas antes de exportar.'); return; }
+  const btn=document.querySelector('.btn-export');
+  btn.textContent='Generando PDF...';
+  const content=document.createElement('div');
+  content.style.cssText='font-family:Arial,sans-serif;padding:24px;color:#111;max-width:700px;margin:0 auto';
+  content.innerHTML=`
+    <div style="border-bottom:2px solid #1D9E75;padding-bottom:12px;margin-bottom:20px">
+      <h1 style="font-size:20px;font-weight:700;color:#085041;margin:0">${p.name}</h1>
+      <p style="font-size:12px;color:#666;margin:4px 0 0">Reporte de puertas · ${p.doors.length} unidad${p.doors.length!==1?'es':''} · ${p.created} · Medidas en pulgadas</p>
+    </div>
+    ${p.doors.map(d=>`
+      <div style="border:1px solid #ddd;border-radius:8px;padding:14px;margin-bottom:14px;page-break-inside:avoid">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #eee">
+          <span style="background:#E1F5EE;color:#085041;padding:2px 10px;border-radius:20px;font-size:13px;font-weight:700">Puerta ${d.num}</span>
+          ${d.diseno?`<span style="font-size:12px;color:#666">${d.diseno}</span>`:''}
+          ${d.tipo?`<span style="background:#E6F1FB;color:#185FA5;padding:2px 7px;border-radius:4px;font-size:11px">${getDisplayVal(d.tipo,d.tipoCustom)}</span>`:''}
+          ${d.calidad?`<span style="background:#f5f5f5;padding:2px 7px;border-radius:4px;font-size:11px">Aluminio ${getDisplayVal(d.calidad,d.calidadCustom)}</span>`:''}
+        </div>
+        <p style="font-size:10px;font-weight:700;color:#888;margin:0 0 5px;text-transform:uppercase;letter-spacing:.5px">Medidas del vano (mocheta)</p>
+        <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:10px">
+          <tr><td style="padding:3px 8px;color:#666;width:35%">Alto izq / der</td><td style="padding:3px 8px;font-weight:600">${d.altoIzq||'—'}" / ${d.altoDer||'—'}"</td><td style="padding:3px 8px;color:#666;width:25%">Ancho mocheta</td><td style="padding:3px 8px">${d.anchoMocheta||'—'}"</td></tr>
+          <tr style="background:#f9f9f9"><td style="padding:3px 8px;color:#666">Largo abajo / arriba</td><td style="padding:3px 8px;font-weight:600">${d.largoAbajo||'—'}" / ${d.largoArriba||'—'}"</td><td style="padding:3px 8px;color:#666">Apertura</td><td style="padding:3px 8px;font-weight:600">${d.apertura==='IN'?'Adentro':'Afuera'} · Bisagra ${d.bisagra}</td></tr>
+        </table>
+        <p style="font-size:10px;font-weight:700;color:#888;margin:0 0 5px;text-transform:uppercase;letter-spacing:.5px">Acabados</p>
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <tr><td style="padding:3px 8px;color:#666;width:25%">Cristal</td><td style="padding:3px 8px">${getDisplayVal(d.cristal,d.cristalCustom)}</td><td style="padding:3px 8px;color:#666;width:25%">Marco</td><td style="padding:3px 8px">${getDisplayVal(d.colorMarco,d.marcoCustom)}</td></tr>
+          <tr style="background:#f9f9f9"><td style="padding:3px 8px;color:#666">Color puerta</td><td style="padding:3px 8px">${getDisplayVal(d.colorPuerta,d.puertaCustom)}</td><td style="padding:3px 8px;color:#666">Glass adapters</td><td style="padding:3px 8px">${getDisplayVal(d.colorAdapters,d.adaptersCustom)}</td></tr>
+          <tr><td style="padding:3px 8px;color:#666">Intermedios</td><td style="padding:3px 8px">${getDisplayVal(d.colorIntermedios,d.intermediosCustom)}</td><td></td><td></td></tr>
+        </table>
+        ${d.obs?`<div style="margin-top:8px;padding:6px 8px;background:#f0faf5;border-left:3px solid #1D9E75;font-size:11px"><strong>Obs:</strong> ${d.obs}</div>`:''}
+        ${d.notas?`<div style="margin-top:4px;padding:6px 8px;background:#f0faf5;border-left:3px solid #1D9E75;font-size:11px"><strong>Notas:</strong> ${d.notas}</div>`:''}
+      </div>
+    `).join('')}`;
+  html2pdf().set({margin:10,filename:`${p.name.replace(/\s+/g,'-')}.pdf`,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).save().then(()=>{ btn.innerHTML='<i class="ti ti-download"></i> Descargar PDF'; });
+}
+
+load();
+</script>
