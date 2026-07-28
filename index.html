@@ -328,6 +328,7 @@
 </div>
 
 <div id="toast"></div>
+<iframe name="fsFrame" id="fsFrame" style="display:none;" title="envio-oculto"></iframe>
 
 <script>
 /* ---------------------------------------------------------
@@ -865,31 +866,55 @@ function generateFinalPDF(isInPerson){
    AUTO-EMAIL A COPY TO THE BUSINESS OWNER (FormSubmit.co)
    Free, no backend, no signup — just a one-time email
    confirmation the first time a given address is used.
---------------------------------------------------------- */
-async function sendCopyByEmail(data, blob, filename){
-  try{
-    const fd = new FormData();
-    fd.append('_subject', 'Contrato firmado - ' + (data.cliente||''));
-    fd.append('_template', 'box');
-    fd.append('_captcha', 'false');
-    fd.append('Cliente', data.cliente||'');
-    fd.append('Correo del cliente', data.email||'');
-    fd.append('Teléfono', data.telefono||'');
-    fd.append('Dirección', data.direccion||'');
-    fd.append('Total', fmtMoney(data.total));
-    fd.append('Fecha', data.fecha||'');
-    fd.append('attachment', new File([blob], filename, {type:'application/pdf'}));
 
-    const res = await fetch('https://formsubmit.co/ajax/' + encodeURIComponent(data.ownerEmail), {
-      method: 'POST',
-      body: fd,
-      headers: {'Accept':'application/json'}
-    });
-    if(res.ok){
-      toast('Copia enviada a ' + data.ownerEmail);
-    } else {
-      toast('No se pudo enviar la copia automática (revisa que el correo esté confirmado en FormSubmit)');
+   IMPORTANT: this uses a real <form> POST (multipart/form-data)
+   targeted at a hidden iframe, submitted natively by the browser.
+   This is FormSubmit's officially documented method for sending
+   file attachments — a fetch() to their /ajax/ endpoint does NOT
+   reliably support attachments, which is why the first version
+   of this silently failed.
+--------------------------------------------------------- */
+function sendCopyByEmail(data, blob, filename){
+  try{
+    const file = new File([blob], filename, {type:'application/pdf'});
+
+    const form = document.createElement('form');
+    form.action = 'https://formsubmit.co/' + encodeURIComponent(data.ownerEmail);
+    form.method = 'POST';
+    form.enctype = 'multipart/form-data';
+    form.target = 'fsFrame';
+    form.style.display = 'none';
+
+    function addField(name, value){
+      const inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = name;
+      inp.value = value;
+      form.appendChild(inp);
     }
+    addField('_subject', 'Contrato firmado - ' + (data.cliente||''));
+    addField('_template', 'box');
+    addField('_captcha', 'false');
+    addField('Cliente', data.cliente||'');
+    addField('Correo del cliente', data.email||'');
+    addField('Teléfono', data.telefono||'');
+    addField('Dirección', data.direccion||'');
+    addField('Total', fmtMoney(data.total));
+    addField('Fecha', data.fecha||'');
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.name = 'attachment';
+    fileInput.style.display = 'none';
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    form.appendChild(fileInput);
+
+    document.body.appendChild(form);
+    form.submit();
+    toast('Enviando copia a ' + data.ownerEmail + '…');
+    setTimeout(()=>{ form.remove(); }, 4000);
   }catch(e){
     toast('No se pudo enviar la copia automática — el PDF sí se descargó normalmente');
   }
