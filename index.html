@@ -166,6 +166,18 @@
       </div>
 
       <div class="card">
+        <h2><span class="badge">✓</span>Tu copia automática</h2>
+        <label>Tu correo electrónico (para recibir copia del contrato firmado)</label>
+        <input type="email" id="f_ownerEmail" placeholder="tucorreo@ejemplo.com">
+        <div class="hint">
+          Cada vez que se firme un contrato (en persona o de forma remota), te llegará automáticamente
+          una copia en PDF a este correo — no dependes de que el cliente te lo reenvíe.
+          <b>La primera vez que uses un correo nuevo, FormSubmit te enviará un correo de confirmación;
+          ábrelo y confirma antes de enviar contratos reales.</b>
+        </div>
+      </div>
+
+      <div class="card">
         <h2><span class="badge">2</span>Desglose de productos y servicios</h2>
         <table class="prod" id="prodTable">
           <thead>
@@ -489,7 +501,8 @@ function collectFormData(){
     productos: products,
     total: parseFloat(document.getElementById('f_total').value)||0,
     descripcion: document.getElementById('f_descripcion').value,
-    fechaEstimada: document.getElementById('f_fechaEstimada').value
+    fechaEstimada: document.getElementById('f_fechaEstimada').value,
+    ownerEmail: document.getElementById('f_ownerEmail').value.trim()
   };
 }
 
@@ -842,6 +855,44 @@ function generateFinalPDF(isInPerson){
     document.getElementById('shareRow').style.display = 'flex';
   }
   toast('PDF generado');
+
+  if(data.ownerEmail){
+    sendCopyByEmail(data, lastPdfBlob, filename);
+  }
+}
+
+/* ---------------------------------------------------------
+   AUTO-EMAIL A COPY TO THE BUSINESS OWNER (FormSubmit.co)
+   Free, no backend, no signup — just a one-time email
+   confirmation the first time a given address is used.
+--------------------------------------------------------- */
+async function sendCopyByEmail(data, blob, filename){
+  try{
+    const fd = new FormData();
+    fd.append('_subject', 'Contrato firmado - ' + (data.cliente||''));
+    fd.append('_template', 'box');
+    fd.append('_captcha', 'false');
+    fd.append('Cliente', data.cliente||'');
+    fd.append('Correo del cliente', data.email||'');
+    fd.append('Teléfono', data.telefono||'');
+    fd.append('Dirección', data.direccion||'');
+    fd.append('Total', fmtMoney(data.total));
+    fd.append('Fecha', data.fecha||'');
+    fd.append('attachment', new File([blob], filename, {type:'application/pdf'}));
+
+    const res = await fetch('https://formsubmit.co/ajax/' + encodeURIComponent(data.ownerEmail), {
+      method: 'POST',
+      body: fd,
+      headers: {'Accept':'application/json'}
+    });
+    if(res.ok){
+      toast('Copia enviada a ' + data.ownerEmail);
+    } else {
+      toast('No se pudo enviar la copia automática (revisa que el correo esté confirmado en FormSubmit)');
+    }
+  }catch(e){
+    toast('No se pudo enviar la copia automática — el PDF sí se descargó normalmente');
+  }
 }
 
 async function shareFile(){
@@ -869,4 +920,3 @@ initSignModeIfNeeded();
 </script>
 </body>
 </html>
-</script>
