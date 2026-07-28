@@ -1,986 +1,872 @@
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.33.0/dist/tabler-icons.min.css">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0A1628">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Adominium — Generador de Contratos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root {
-  /* Apple-style palette: navy, gray, black, white */
-  --navy:        #0A1628;
-  --navy-mid:    #122240;
-  --navy-light:  #1C3157;
-  --accent:      #1B4F9C;
-  --accent-soft: #2563C5;
-  --accent-pale: #D6E4F7;
-  --accent-pale2:#EBF2FD;
-
-  --black:       #0A0A0F;
-  --gray-900:    #111118;
-  --gray-800:    #1C1C25;
-  --gray-700:    #2E2E3A;
-  --gray-600:    #48485A;
-  --gray-500:    #6B6B7E;
-  --gray-400:    #9494A8;
-  --gray-300:    #C4C4D0;
-  --gray-200:    #E0E0E8;
-  --gray-100:    #F0F0F5;
-  --gray-50:     #F7F7FA;
-  --white:       #FFFFFF;
-
-  --red:         #D93025;
-  --red-pale:    #FDECEA;
-
-  /* Semantic tokens */
-  --color-background-primary:    var(--white);
-  --color-background-secondary:  var(--gray-50);
-  --color-background-tertiary:   var(--gray-100);
-  --color-text-primary:          var(--gray-900);
-  --color-text-secondary:        var(--gray-500);
-  --color-border-tertiary:       var(--gray-200);
-  --color-border-secondary:      var(--gray-300);
-
-  --border-radius-sm: 6px;
-  --border-radius-md: 10px;
-  --border-radius-lg: 14px;
-  --border-radius-xl: 20px;
-
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-
-  --shadow-sm: 0 1px 3px rgba(10,22,40,0.08), 0 1px 2px rgba(10,22,40,0.04);
-  --shadow-md: 0 4px 12px rgba(10,22,40,0.10), 0 2px 4px rgba(10,22,40,0.06);
-  --shadow-lg: 0 8px 24px rgba(10,22,40,0.14), 0 4px 8px rgba(10,22,40,0.08);
-}
-
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{
-  font-family:var(--font-sans);
-  background:var(--gray-100);
-  min-height:100vh;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-}
-
-/* ── App shell ── */
-.app{max-width:430px;margin:0 auto;padding:0 0 env(safe-area-inset-bottom,24px)}
-
-/* ── Header ── */
-.header{
-  background:rgba(255,255,255,0.92);
-  backdrop-filter:saturate(180%) blur(20px);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-bottom:1px solid var(--gray-200);
-  padding:14px 16px;
-  position:sticky;top:0;z-index:100;
-  display:flex;align-items:center;gap:10px;
-}
-.header-back{
-  width:32px;height:32px;
-  border:1.5px solid var(--gray-200);
-  border-radius:50%;
-  background:var(--white);
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;
-  color:var(--accent-soft);
-  flex-shrink:0;
-  box-shadow:var(--shadow-sm);
-  transition:background .15s,transform .1s;
-}
-.header-back:active{background:var(--gray-100);transform:scale(0.93)}
-.header-info{flex:1;min-width:0}
-.header-info h1{
-  font-size:17px;font-weight:600;
-  color:var(--navy);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  letter-spacing:-0.3px;
-}
-.header-info p{font-size:12px;color:var(--gray-500);margin-top:1px;font-weight:400}
-
-/* ── Tabs ── */
-.tabs{
-  display:flex;
-  background:var(--white);
-  border-bottom:1px solid var(--gray-200);
-  padding:0 8px;
-  gap:4px;
-}
-.tab{
-  flex:1;padding:10px 6px 9px;
-  font-size:12px;font-weight:600;
-  color:var(--gray-400);
-  border:none;background:none;cursor:pointer;
-  border-bottom:2.5px solid transparent;
-  letter-spacing:.2px;text-transform:uppercase;
-  transition:color .15s,border-color .15s;
-}
-.tab.active{color:var(--accent-soft);border-bottom-color:var(--accent-soft)}
-
-/* ── Views ── */
-.view{display:none;padding:16px}
-.view.active{display:block}
-
-/* ── Buttons ── */
-.btn-primary{
-  width:100%;padding:14px;
-  background:var(--navy);
-  color:var(--white);
-  border:none;border-radius:var(--border-radius-lg);
-  font-size:15px;font-weight:600;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  margin-bottom:12px;
-  box-shadow:0 2px 8px rgba(10,22,40,0.25);
-  transition:background .15s,transform .1s,box-shadow .15s;
-  letter-spacing:-0.1px;
-}
-.btn-primary:active{background:var(--navy-mid);transform:scale(0.98);box-shadow:none}
-
-.btn-secondary{
-  width:100%;padding:12px;
-  background:var(--white);
-  color:var(--accent-soft);
-  border:1.5px solid var(--accent-pale);
-  border-radius:var(--border-radius-lg);
-  font-size:14px;font-weight:600;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  margin-bottom:12px;
-  transition:background .15s,transform .1s;
-}
-.btn-secondary:active{background:var(--accent-pale2);transform:scale(0.98)}
-
-/* ── Project cards ── */
-.proj-card{
-  background:var(--white);
-  border:1px solid var(--gray-200);
-  border-radius:var(--border-radius-lg);
-  margin-bottom:10px;
-  padding:14px 16px;
-  display:flex;align-items:center;gap:12px;
-  cursor:pointer;
-  box-shadow:var(--shadow-sm);
-  transition:transform .12s,box-shadow .12s;
-}
-.proj-card:active{transform:scale(0.98);box-shadow:none}
-.proj-icon{
-  width:42px;height:42px;
-  border-radius:var(--border-radius-md);
-  background:var(--navy);
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;flex-shrink:0;
-  box-shadow:0 2px 8px rgba(10,22,40,0.22);
-}
-.proj-icon i{color:var(--white) !important}
-.proj-info{flex:1;min-width:0}
-.proj-info strong{
-  font-size:14px;font-weight:600;
-  color:var(--gray-900);
-  display:block;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  letter-spacing:-0.1px;
-}
-.proj-info span{font-size:12px;color:var(--gray-400);margin-top:2px;display:block}
-.proj-actions{display:flex;gap:6px;flex-shrink:0}
-
-.btn-icon{
-  width:32px;height:32px;
-  border:1.5px solid var(--gray-200);
-  border-radius:50%;
-  background:var(--white);
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;
-  color:var(--gray-500);
-  box-shadow:var(--shadow-sm);
-  transition:background .12s,transform .1s;
-}
-.btn-icon:active{background:var(--gray-100);transform:scale(0.92)}
-.btn-icon.del{color:var(--red);border-color:#F7C1C1;background:#FFF5F5}
-.btn-icon.del:active{background:var(--red-pale)}
-
-/* ── Door cards ── */
-.door-card{
-  background:var(--white);
-  border:1px solid var(--gray-200);
-  border-radius:var(--border-radius-lg);
-  margin-bottom:10px;
-  overflow:hidden;
-  box-shadow:var(--shadow-sm);
-}
-.door-card-header{
-  display:flex;align-items:center;
-  padding:13px 14px;
-  cursor:pointer;gap:10px;
-  background:var(--white);
-}
-.door-num{
-  width:34px;height:34px;border-radius:50%;
-  background:var(--navy);
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:700;
-  color:var(--white);flex-shrink:0;
-  box-shadow:0 2px 6px rgba(10,22,40,0.22);
-}
-.door-title{flex:1;min-width:0}
-.door-title strong{font-size:14px;font-weight:600;color:var(--gray-900);display:block;letter-spacing:-0.1px}
-.door-title span{font-size:12px;color:var(--gray-400)}
-.door-body{padding:0 14px 14px;border-top:1px solid var(--gray-100);background:var(--gray-50)}
-
-/* ── Section labels ── */
-.section-label{
-  font-size:10.5px;font-weight:700;
-  color:var(--gray-400);
-  text-transform:uppercase;letter-spacing:.8px;
-  margin:16px 0 8px;
-  display:flex;align-items:center;gap:5px;
-}
-
-/* ── Fields ── */
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.field-row.full{grid-template-columns:1fr}
-.field{display:flex;flex-direction:column;gap:4px}
-.field label{font-size:11.5px;font-weight:500;color:var(--gray-500);letter-spacing:.1px}
-.field input,.field select,.field textarea{
-  font-size:14px;padding:9px 11px;
-  border:1.5px solid var(--gray-200);
-  border-radius:var(--border-radius-md);
-  background:var(--white);
-  color:var(--gray-900);
-  width:100%;
-  font-family:var(--font-sans);
-  transition:border-color .15s,box-shadow .15s;
-  appearance:none;-webkit-appearance:none;
-}
-.field input:focus,.field select:focus,.field textarea:focus{
-  outline:none;
-  border-color:var(--accent-soft);
-  box-shadow:0 0 0 3px rgba(37,99,197,0.12);
-}
-.field textarea{resize:none;height:60px}
-.field select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B7E' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;
-  background-position:right 10px center;
-  padding-right:28px;
-}
-
-.field-unit{position:relative}
-.field-unit input{padding-right:28px}
-.field-unit .unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--gray-400);pointer-events:none;font-weight:500}
-
-/* ── Toggle group ── */
-.toggle-group{display:flex;gap:6px}
-.toggle-btn{
-  flex:1;padding:10px 6px;
-  border:1.5px solid var(--gray-200);
-  border-radius:var(--border-radius-md);
-  background:var(--white);
-  font-size:13px;font-weight:600;
-  color:var(--gray-500);
-  cursor:pointer;text-align:center;
-  transition:all .15s;
-  font-family:var(--font-sans);
-}
-.toggle-btn.active{
-  background:var(--navy);
-  border-color:var(--navy);
-  color:var(--white);
-  box-shadow:0 2px 8px rgba(10,22,40,0.20);
-}
-
-/* ── Direction badge ── */
-.direction-badge{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:6px 12px;
-  border-radius:var(--border-radius-md);
-  background:var(--accent-pale2);
-  border:1px solid var(--accent-pale);
-  font-size:12px;font-weight:600;
-  color:var(--accent);
-  margin-top:8px;
-}
-
-/* ── Custom reveal ── */
-.custom-reveal{margin-top:5px;display:none}
-.custom-reveal input{
-  font-size:13px;padding:8px 11px;
-  border:1.5px solid var(--accent-soft);
-  border-radius:var(--border-radius-md);
-  background:var(--white);color:var(--gray-900);width:100%;
-  font-family:var(--font-sans);
-}
-
-/* ── Empty state ── */
-.empty-state{text-align:center;padding:48px 20px;color:var(--gray-400)}
-.empty-state i{font-size:44px;display:block;margin-bottom:14px;color:var(--gray-300)}
-.empty-state p{font-size:14px;font-weight:500;color:var(--gray-400)}
-
-/* ── Count badge ── */
-.count-badge{
-  background:var(--accent-pale2);
-  color:var(--accent);
-  border:1px solid var(--accent-pale);
-  padding:3px 10px;border-radius:20px;
-  font-size:12px;font-weight:600;
-}
-
-/* ── Table ── */
-.table-wrap{overflow-x:auto;border-radius:var(--border-radius-lg);border:1px solid var(--gray-200);box-shadow:var(--shadow-sm)}
-table{width:100%;border-collapse:collapse;font-size:12px;min-width:560px}
-thead th{
-  background:var(--navy);
-  padding:9px 10px;
-  text-align:left;font-weight:600;
-  color:var(--white);
-  font-size:11px;letter-spacing:.3px;text-transform:uppercase;
-}
-thead th:first-child{border-radius:var(--border-radius-lg) 0 0 0}
-thead th:last-child{border-radius:0 var(--border-radius-lg) 0 0}
-tbody td{
-  padding:9px 10px;
-  border-bottom:1px solid var(--gray-100);
-  color:var(--gray-900);
-  vertical-align:top;
-  background:var(--white);
-}
-tbody tr:last-child td{border-bottom:none}
-.td-num{font-weight:700;color:var(--accent)}
-.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.tag-in{background:var(--accent-pale2);color:var(--accent)}
-.tag-out{background:#FEF3C7;color:#92400E}
-.sub-row td{background:var(--gray-50) !important}
-.sub-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:11px}
-.sub-item label{color:var(--gray-400);font-weight:500}
-.sub-item span{color:var(--gray-900);font-weight:600}
-
-/* ── Export button ── */
-.btn-export{
-  width:100%;padding:14px;
-  background:var(--navy);color:var(--white);
-  border:none;border-radius:var(--border-radius-lg);
-  font-size:15px;font-weight:600;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  margin-top:12px;
-  box-shadow:0 2px 8px rgba(10,22,40,0.25);
-  transition:background .15s,transform .1s;
-  font-family:var(--font-sans);
-  letter-spacing:-0.1px;
-}
-.btn-export:active{background:var(--navy-mid);transform:scale(0.98)}
-
-/* ── Modal ── */
-.modal-bg{
-  display:none;
-  min-height:300px;
-  background:rgba(10,14,26,0.55);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
-  border-radius:var(--border-radius-lg);
-  align-items:center;justify-content:center;
-  padding:20px;margin-bottom:12px;
-}
-.modal-bg.open{display:flex}
-.modal{
-  background:var(--white);
-  border-radius:var(--border-radius-xl);
-  padding:22px;
-  width:100%;max-width:320px;
-  box-shadow:var(--shadow-lg);
-}
-.modal h2{
-  font-size:17px;font-weight:700;
-  margin-bottom:14px;color:var(--navy);
-  letter-spacing:-0.3px;
-}
-.modal input{
-  font-size:15px;padding:11px 13px;
-  border:1.5px solid var(--gray-200);
-  border-radius:var(--border-radius-md);
-  background:var(--gray-50);
-  color:var(--gray-900);
-  width:100%;margin-bottom:14px;
-  font-family:var(--font-sans);
-  transition:border-color .15s,box-shadow .15s;
-}
-.modal input:focus{outline:none;border-color:var(--accent-soft);box-shadow:0 0 0 3px rgba(37,99,197,0.12)}
-.modal-btns{display:flex;gap:8px}
-.modal-btns button{
-  flex:1;padding:11px;
-  border-radius:var(--border-radius-md);
-  font-size:14px;font-weight:600;
-  cursor:pointer;border:none;
-  font-family:var(--font-sans);
-  transition:background .15s,transform .1s;
-}
-.modal-cancel{background:var(--gray-100);color:var(--gray-600)}
-.modal-cancel:active{background:var(--gray-200)}
-.modal-confirm{background:var(--navy);color:var(--white);box-shadow:0 2px 8px rgba(10,22,40,0.25)}
-.modal-confirm:active{background:var(--navy-mid);transform:scale(0.97)}
-
-/* ── Mocheta diagram ── */
-.mocheta-diagram{
-  background:var(--gray-50);
-  border:1.5px solid var(--gray-200);
-  border-radius:var(--border-radius-md);
-  padding:10px;margin-bottom:12px;
-}
-.mocheta-svg{display:block;margin:0 auto}
-
-/* ── Projects screen header pill ── */
-#screen-projects .header{
-  background:var(--navy);
-  border-bottom:none;
-}
-#screen-projects .header .header-info h1{color:var(--white)}
-#screen-projects .header .header-info p{color:rgba(255,255,255,0.6)}
+  :root{
+    --blue:#1c5d78;
+    --blue-dark:#123f52;
+    --ink:#20303a;
+    --paper:#ffffff;
+    --bg:#eef2f4;
+    --line:#c9d4d9;
+    --accent:#c8792f;
+    --danger:#b3432e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:60px;
+  }
+  header{
+    background:var(--blue);
+    color:#fff;
+    padding:22px 20px;
+    text-align:center;
+  }
+  header h1{margin:0;font-size:22px;letter-spacing:.5px;}
+  header p{margin:4px 0 0;font-size:13px;opacity:.85;}
+  .wrap{max-width:760px;margin:20px auto;padding:0 14px;}
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px;
+    margin-bottom:18px;
+  }
+  .card h2{
+    font-size:16px;
+    color:var(--blue-dark);
+    margin:0 0 14px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--blue);
+    text-transform:uppercase;
+    letter-spacing:.4px;
+  }
+  label{display:block;font-size:13px;font-weight:600;margin:10px 0 4px;color:#3a4a52;}
+  input[type=text], input[type=email], input[type=tel], input[type=date], input[type=number], textarea{
+    width:100%;
+    padding:10px 11px;
+    font-size:15px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:#fbfcfd;
+    font-family:inherit;
+    color:var(--ink);
+  }
+  textarea{resize:vertical;min-height:70px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
+  table.prod{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;}
+  table.prod th{background:#f0f5f7;padding:6px 4px;font-size:11px;text-transform:uppercase;color:#4a5a62;border-bottom:1px solid var(--line);}
+  table.prod td{padding:5px 3px;border-bottom:1px solid #eef1f2;vertical-align:top;}
+  table.prod input{width:100%;padding:6px;font-size:13px;border:1px solid var(--line);border-radius:5px;}
+  .subtotal-cell{font-weight:600;text-align:right;padding-right:6px;white-space:nowrap;}
+  .row-actions{text-align:center;}
+  .btn{
+    display:inline-block;
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    padding:11px 18px;
+    font-size:14px;
+    font-weight:600;
+    border-radius:7px;
+    cursor:pointer;
+    text-align:center;
+  }
+  .btn.secondary{background:#fff;color:var(--blue);border:1.5px solid var(--blue);}
+  .btn.small{padding:6px 10px;font-size:12px;}
+  .btn.danger{background:var(--danger);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .deposit-box{
+    margin-top:12px;
+    padding:12px 14px;
+    background:#fbf3ea;
+    border:1px solid #e6c79a;
+    border-radius:8px;
+    font-size:14px;
+  }
+  .deposit-box b{color:var(--accent);font-size:16px;}
+  .hint{font-size:12px;color:#6b7b83;margin-top:4px;}
+  .sig-pad-wrap{border:2px dashed var(--line);border-radius:8px;background:#fdfdfd;touch-action:none;}
+  canvas.sig-pad{width:100%;height:180px;display:block;touch-action:none;}
+  .sig-controls{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+  .link-box{
+    display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;
+  }
+  .link-box input{flex:1;min-width:200px;font-size:12px;color:#555;}
+  .step{display:none;}
+  .step.active{display:block;}
+  .badge{
+    display:inline-block;background:var(--blue);color:#fff;border-radius:50%;
+    width:22px;height:22px;text-align:center;line-height:22px;font-size:12px;margin-right:8px;
+  }
+  .readonly-field{
+    background:#f4f7f8;padding:10px 12px;border-radius:7px;border:1px solid var(--line);
+    font-size:14px;margin-bottom:4px;
+  }
+  .readonly-field b{display:block;font-size:11px;text-transform:uppercase;color:#7a8890;margin-bottom:2px;font-weight:700;}
+  .note{
+    background:#eef6f9;border:1px solid #bfe0ea;border-radius:8px;padding:12px 14px;font-size:13px;margin-bottom:16px;
+  }
+  #toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:var(--blue-dark);color:#fff;padding:10px 18px;border-radius:8px;
+    font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:99;
+  }
+  #toast.show{opacity:1;}
+  .remove-row{color:var(--danger);cursor:pointer;font-size:18px;font-weight:bold;}
+  @media(max-width:480px){
+    .grid2{grid-template-columns:1fr;}
+    table.prod{font-size:11px;}
+  }
 </style>
+</head>
+<body>
 
-<div class="app" id="app">
+<header>
+  <h1>ADOMINIUM</h1>
+  <p id="headerSub">Generador de Contratos — Puertas y Ventanas</p>
+</header>
 
-  <div id="modal-area">
-    <div class="modal-bg" id="modal-new-proj">
-      <div class="modal">
-        <h2 id="modal-title">Nuevo proyecto</h2>
-        <input type="text" id="modal-proj-name" placeholder="Nombre del proyecto..." maxlength="50">
-        <div class="modal-btns">
-          <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
-          <button class="modal-confirm" onclick="confirmProject()">Guardar</button>
+<div class="wrap">
+
+  <!-- ===================== CREATE MODE ===================== -->
+  <div id="createMode">
+
+    <div class="step active" id="step1">
+      <div class="card">
+        <h2><span class="badge">1</span>Datos del cliente</h2>
+        <label>Fecha</label>
+        <input type="date" id="f_fecha">
+
+        <label>Cliente (nombre completo)</label>
+        <input type="text" id="f_cliente" placeholder="Nombre y apellidos">
+
+        <div class="grid2">
+          <div>
+            <label>Teléfono</label>
+            <input type="tel" id="f_telefono" placeholder="787-000-0000">
+          </div>
+          <div>
+            <label>Correo electrónico</label>
+            <input type="email" id="f_email" placeholder="cliente@correo.com">
+          </div>
+        </div>
+
+        <label>Dirección del proyecto</label>
+        <textarea id="f_direccion" placeholder="Urbanización, calle, número, ciudad, código postal"></textarea>
+      </div>
+
+      <div class="card">
+        <h2><span class="badge">2</span>Desglose de productos y servicios</h2>
+        <table class="prod" id="prodTable">
+          <thead>
+            <tr>
+              <th style="width:8%">Cant.</th>
+              <th style="width:20%">Descripción</th>
+              <th style="width:14%">Medidas</th>
+              <th style="width:14%">Material</th>
+              <th style="width:12%">Color</th>
+              <th style="width:14%">Precio/u.</th>
+              <th style="width:14%">Subtotal</th>
+              <th style="width:4%"></th>
+            </tr>
+          </thead>
+          <tbody id="prodBody"></tbody>
+        </table>
+        <button type="button" class="btn secondary small" onclick="addProductRow()" style="margin-top:8px;">+ Añadir producto</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="badge">3</span>Total y descripción del proyecto</h2>
+        <label>Total del proyecto ($)</label>
+        <input type="number" step="0.01" id="f_total" oninput="onTotalChange()">
+        <div class="hint">Se calcula automáticamente sumando la tabla, pero puedes escribir tu propio monto.</div>
+
+        <div class="deposit-box" id="depositBox">
+          Depósito inicial (50%): <b id="depositAmount">$0.00</b> — el balance restante (<span id="balanceAmount">$0.00</span>) se paga al recoger, entregar o instalar.
+        </div>
+
+        <label style="margin-top:16px;">Descripción del proyecto / notas incluidas</label>
+        <textarea id="f_descripcion" style="min-height:110px;">(Incluye IVU, cerraduras, fabricación, transporte, desinstalación de puertas antiguas, instalación de puertas nuevas y recogido de los escombros.)</textarea>
+
+        <label>Fecha estimada de entrega o completado</label>
+        <input type="text" id="f_fechaEstimada" placeholder="Ej: 2-3 semanas máximo luego de haber recibido el depósito">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" onclick="goToSignChoice()">Continuar a firmas →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: choose signing path -->
+    <div class="step" id="step2">
+      <div class="card">
+        <h2><span class="badge">4</span>¿Cómo se va a firmar?</h2>
+        <p style="font-size:14px;">Elige una opción:</p>
+        <div class="btn-row">
+          <button class="btn" onclick="showInPerson()">✍️ Firmar ahora, en persona (mismo dispositivo)</button>
+          <button class="btn secondary" onclick="showRemoteLink()">📩 Generar enlace para que el cliente firme en su teléfono</button>
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn secondary small" onclick="backToStep1()">← Volver a editar datos</button>
+        </div>
+      </div>
+
+      <!-- In person signing -->
+      <div class="card" id="inPersonCard" style="display:none;">
+        <h2>Firma del Representante Adominium</h2>
+        <div class="sig-pad-wrap"><canvas class="sig-pad" id="sigRep"></canvas></div>
+        <div class="sig-controls">
+          <span class="hint">Firme con el dedo o el mouse</span>
+          <button class="btn small secondary" onclick="clearPad('sigRep')">Borrar</button>
+        </div>
+
+        <h2 style="margin-top:22px;">Firma del Cliente</h2>
+        <div class="sig-pad-wrap"><canvas class="sig-pad" id="sigCliente"></canvas></div>
+        <div class="sig-controls">
+          <span class="hint">Firme con el dedo o el mouse</span>
+          <button class="btn small secondary" onclick="clearPad('sigCliente')">Borrar</button>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" onclick="generateFinalPDF(true)">📄 Generar y descargar PDF firmado</button>
+        </div>
+      </div>
+
+      <!-- Remote link generation -->
+      <div class="card" id="remoteCard" style="display:none;">
+        <h2>Firma del Representante Adominium (opcional, antes de enviar)</h2>
+        <p class="hint">Si firmas aquí ahora, tu firma ya quedará incluida en el contrato que reciba el cliente.</p>
+        <div class="sig-pad-wrap"><canvas class="sig-pad" id="sigRep2"></canvas></div>
+        <div class="sig-controls">
+          <span class="hint">Firme con el dedo o el mouse</span>
+          <button class="btn small secondary" onclick="clearPad('sigRep2')">Borrar</button>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" onclick="buildRemoteLink()">🔗 Generar enlace para el cliente</button>
+        </div>
+
+        <div id="linkResult" style="display:none;">
+          <label style="margin-top:16px;">Enlace para enviar al cliente:</label>
+          <div class="link-box">
+            <input type="text" id="remoteLinkInput" readonly>
+            <button class="btn small" onclick="copyLink()">Copiar</button>
+          </div>
+          <div class="note" style="margin-top:12px;">
+            Envía este enlace por correo, WhatsApp o mensaje de texto. El cliente lo abre en su teléfono,
+            revisa el contrato, firma con el dedo y el PDF firmado se descarga automáticamente en su teléfono
+            (con opción de reenviártelo por WhatsApp o correo con un toque).
+          </div>
         </div>
       </div>
     </div>
+
   </div>
 
-  <div id="screen-projects">
-    <div class="header">
-      <div class="header-info">
-        <h1>Mis proyectos</h1>
-        <p id="proj-count-label">Sin proyectos guardados</p>
-      </div>
+  <!-- ===================== SIGN MODE (opened via link) ===================== -->
+  <div id="signMode" style="display:none;">
+    <div class="card">
+      <h2>Revisión del contrato</h2>
+      <div class="readonly-field"><b>Cliente</b><span id="s_cliente"></span></div>
+      <div class="readonly-field"><b>Correo</b><span id="s_email"></span></div>
+      <div class="readonly-field"><b>Teléfono</b><span id="s_telefono"></span></div>
+      <div class="readonly-field"><b>Dirección</b><span id="s_direccion"></span></div>
+      <div class="readonly-field"><b>Fecha</b><span id="s_fecha"></span></div>
     </div>
-    <div class="view active" style="display:block">
-      <button class="btn-primary" onclick="openNewProjectModal()"><i class="ti ti-folder-plus" aria-hidden="true"></i> Nuevo proyecto</button>
-      <div id="projects-list"></div>
+
+    <div class="card">
+      <h2>Productos</h2>
+      <table class="prod" id="s_prodTable">
+        <thead><tr><th>Cant.</th><th>Descripción</th><th>Medidas</th><th>Material</th><th>Color</th><th>Precio/u.</th><th>Subtotal</th></tr></thead>
+        <tbody id="s_prodBody"></tbody>
+      </table>
+      <div class="readonly-field" style="margin-top:10px;"><b>Total del proyecto</b><span id="s_total"></span></div>
+      <div class="deposit-box"><span id="s_depositText"></span></div>
+      <div class="readonly-field"><b>Descripción / notas</b><span id="s_descripcion"></span></div>
+      <div class="readonly-field"><b>Fecha estimada de entrega</b><span id="s_fechaEstimada"></span></div>
+    </div>
+
+    <div class="card">
+      <h2>Firma del cliente</h2>
+      <p class="hint">Firma con tu dedo en el recuadro de abajo.</p>
+      <div class="sig-pad-wrap"><canvas class="sig-pad" id="sigClienteRemote"></canvas></div>
+      <div class="sig-controls">
+        <span class="hint">Usa tu dedo</span>
+        <button class="btn small secondary" onclick="clearPad('sigClienteRemote')">Borrar</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="generateFinalPDF(false)">✅ Firmar y descargar contrato en PDF</button>
+      </div>
+      <div id="shareRow" class="btn-row" style="display:none;">
+        <button class="btn secondary" onclick="shareFile()">📤 Enviar PDF firmado por WhatsApp / Correo</button>
+      </div>
     </div>
   </div>
 
-  <div id="screen-doors" style="display:none">
-    <div class="header">
-      <button class="header-back" onclick="goHome()" aria-label="Volver"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
-      <div class="header-info">
-        <h1 id="proj-title-header">Proyecto</h1>
-        <p id="proj-subtitle-header">0 puertas</p>
-      </div>
-      <button class="btn-icon" onclick="openRenameModal()" aria-label="Renombrar"><i class="ti ti-edit" aria-hidden="true"></i></button>
-    </div>
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('cards')"><i class="ti ti-door" aria-hidden="true"></i> Puertas</button>
-      <button class="tab" onclick="switchTab('table')"><i class="ti ti-table" aria-hidden="true"></i> Tabla</button>
-      <button class="tab" onclick="switchTab('export')"><i class="ti ti-file-text" aria-hidden="true"></i> Exportar</button>
-    </div>
-    <div class="view active" id="view-cards">
-      <button class="btn-primary" onclick="addDoor()"><i class="ti ti-plus" aria-hidden="true"></i> Agregar puerta</button>
-      <div id="doors-list"></div>
-    </div>
-    <div class="view" id="view-table"><div id="table-container"></div></div>
-    <div class="view" id="view-export"><div id="export-preview"></div><button class="btn-export" onclick="exportPDF()"><i class="ti ti-download" aria-hidden="true"></i> Descargar PDF</button></div>
-  </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<div id="toast"></div>
+
 <script>
-let projects = [];
-let currentProjId = null;
-let editingProjId = null;
-let doorCounter = 0;
+/* ---------------------------------------------------------
+   STATE
+--------------------------------------------------------- */
+let products = [];
+let lastPdfBlob = null;
+let lastPdfFilename = "contrato.pdf";
 
-const TIPOS = ['Full Glass','Diseñada','Personalizado'];
-const CALIDADES = ['Light','Heavy','Heavy Duty','Personalizado'];
-const GLASS = ['Clear','Bronce','Gris ahumado','Esmerilado','Laminado','Templado','Sin cristal','Personalizado'];
-const COLORS = ['Blanco','Negro','Champagne','Bronce','Plata','Gris oscuro','Madera natural','Personalizado'];
+const todayISO = () => new Date().toISOString().slice(0,10);
+const fmtMoney = n => "$" + (isNaN(n) ? "0.00" : Number(n).toFixed(2));
 
-function save(){
-  try{ window.storage.set('door_projects_v3', JSON.stringify(projects)); }catch(e){}
-  try{ localStorage.setItem('door_projects_v3', JSON.stringify(projects)); }catch(e){}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-async function load(){
-  let data = null;
-  try{
-    const r = await window.storage.get('door_projects_v3');
-    if(r) data = r.value;
-  }catch(e){}
-  if(!data){
-    try{ data = localStorage.getItem('door_projects_v3'); }catch(e){}
-  }
-  if(data){
-    try{
-      projects = JSON.parse(data);
-      doorCounter = Math.max(0,...projects.flatMap(p=>p.doors.map(d=>d.num)));
-      if(!isFinite(doorCounter)) doorCounter=0;
-    }catch(e){ projects=[]; }
-  }
-  renderProjects();
+/* ---------------------------------------------------------
+   PRODUCT TABLE
+--------------------------------------------------------- */
+function addProductRow(data){
+  const id = Date.now() + Math.random();
+  products.push(Object.assign({id, cant:1, descripcion:"", medidas:"", material:"", color:"", precio:0}, data||{}));
+  renderProductTable();
 }
-
-function currentProject(){ return projects.find(p=>p.id===currentProjId); }
-
-function openNewProjectModal(){
-  editingProjId = null;
-  document.getElementById('modal-title').textContent = 'Nuevo proyecto';
-  document.getElementById('modal-proj-name').value = '';
-  document.getElementById('modal-new-proj').classList.add('open');
-  setTimeout(()=>document.getElementById('modal-proj-name').focus(),50);
+function removeProductRow(id){
+  products = products.filter(p=>p.id!==id);
+  renderProductTable();
 }
-
-function openRenameModal(){
-  const p = currentProject();
-  if(!p) return;
-  editingProjId = p.id;
-  document.getElementById('modal-title').textContent = 'Renombrar proyecto';
-  document.getElementById('modal-proj-name').value = p.name;
-  document.getElementById('modal-new-proj').classList.add('open');
-  setTimeout(()=>document.getElementById('modal-proj-name').focus(),50);
-}
-
-function closeModal(){
-  document.getElementById('modal-new-proj').classList.remove('open');
-  document.getElementById('modal-proj-name').value='';
-}
-
-function confirmProject(){
-  const name = document.getElementById('modal-proj-name').value.trim();
-  if(!name) return;
-  if(editingProjId){
-    const p = projects.find(p=>p.id===editingProjId);
-    if(p){ p.name=name; save(); renderProjects(); updateProjHeader(); }
-  } else {
-    const p = { id: Date.now(), name, doors:[], created: new Date().toLocaleDateString('es-ES') };
-    projects.unshift(p);
-    save();
-    renderProjects();
-    openProject(p.id);
-  }
-  closeModal();
-}
-
-document.getElementById('modal-proj-name').addEventListener('keydown',e=>{ if(e.key==='Enter') confirmProject(); if(e.key==='Escape') closeModal(); });
-
-function deleteProject(id, e){
-  e.stopPropagation();
-  if(!confirm('¿Eliminar este proyecto y todas sus puertas?')) return;
-  projects = projects.filter(p=>p.id!==id);
-  save();
-  renderProjects();
-}
-
-function renderProjects(){
-  const list = document.getElementById('projects-list');
-  const label = document.getElementById('proj-count-label');
-  label.textContent = projects.length ? `${projects.length} proyecto${projects.length!==1?'s':''}` : 'Sin proyectos guardados';
-  if(!projects.length){
-    list.innerHTML='<div class="empty-state"><i class="ti ti-folder-off" aria-hidden="true"></i><p>Crea tu primer proyecto para empezar.</p></div>';
-    return;
-  }
-  list.innerHTML = projects.map(p=>`
-    <div class="proj-card" onclick="openProject(${p.id})">
-      <div class="proj-icon"><i class="ti ti-folder" style="color:#FFFFFF;font-size:20px" aria-hidden="true"></i></div>
-      <div class="proj-info">
-        <strong>${p.name}</strong>
-        <span>${p.doors.length} puerta${p.doors.length!==1?'s':''} · ${p.created}</span>
-      </div>
-      <div class="proj-actions" onclick="event.stopPropagation()">
-        <button class="btn-icon" onclick="openProject(${p.id})" aria-label="Abrir"><i class="ti ti-arrow-right" aria-hidden="true"></i></button>
-        <button class="btn-icon del" onclick="deleteProject(${p.id},event)" aria-label="Eliminar"><i class="ti ti-trash" aria-hidden="true"></i></button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function openProject(id){
-  currentProjId = id;
-  document.getElementById('screen-projects').style.display='none';
-  document.getElementById('screen-doors').style.display='block';
-  updateProjHeader();
-  switchTab('cards');
-}
-
-function goHome(){
-  currentProjId = null;
-  document.getElementById('screen-doors').style.display='none';
-  document.getElementById('screen-projects').style.display='block';
-  renderProjects();
-}
-
-function updateProjHeader(){
-  const p = currentProject();
-  if(!p) return;
-  document.getElementById('proj-title-header').textContent = p.name;
-  document.getElementById('proj-subtitle-header').textContent = `${p.doors.length} puerta${p.doors.length!==1?'s':''}`;
-}
-
-function addDoor(){
-  const p = currentProject(); if(!p) return;
-  doorCounter++;
-  const id = Date.now();
-  p.doors.push({
-    id, num: p.doors.length+1,
-    altoIzq:'', altoDer:'', largoAbajo:'', largoArriba:'', anchoMocheta:'',
-    tipo:'', calidad:'', tipoCustom:'', calidadCustom:'', obs:'',
-    apertura:'IN', bisagra:'DERECHA',
-    cristal:'', colorMarco:'', colorPuerta:'', colorAdapters:'', colorIntermedios:'', diseno:'', notas:'',
-    cristalCustom:'', marcoCustom:'', puertaCustom:'', adaptersCustom:'', intermediosCustom:''
+function renderProductTable(){
+  const body = document.getElementById('prodBody');
+  body.innerHTML = "";
+  products.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="number" min="0" value="${p.cant}" onchange="updateProduct('${p.id}','cant',this.value)"></td>
+      <td><input type="text" value="${p.descripcion}" onchange="updateProduct('${p.id}','descripcion',this.value)"></td>
+      <td><input type="text" value="${p.medidas}" onchange="updateProduct('${p.id}','medidas',this.value)"></td>
+      <td><input type="text" value="${p.material}" onchange="updateProduct('${p.id}','material',this.value)"></td>
+      <td><input type="text" value="${p.color}" onchange="updateProduct('${p.id}','color',this.value)"></td>
+      <td><input type="number" step="0.01" min="0" value="${p.precio}" onchange="updateProduct('${p.id}','precio',this.value)"></td>
+      <td class="subtotal-cell">${fmtMoney(p.cant*p.precio)}</td>
+      <td class="row-actions"><span class="remove-row" onclick="removeProductRow('${p.id}')">&times;</span></td>
+    `;
+    body.appendChild(tr);
   });
-  save();
-  renderDoors();
-  updateProjHeader();
-  setTimeout(()=>{ const el=document.getElementById('door-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'}); },100);
+  recalcTotalFromTable();
+}
+function updateProduct(id, field, value){
+  const p = products.find(x=>String(x.id)===String(id));
+  if(!p) return;
+  p[field] = (field==='cant'||field==='precio') ? parseFloat(value)||0 : value;
+  renderProductTable();
+}
+function recalcTotalFromTable(){
+  const sum = products.reduce((a,p)=>a + (p.cant*p.precio), 0);
+  document.getElementById('f_total').value = sum.toFixed(2);
+  updateDepositBox();
+}
+function onTotalChange(){ updateDepositBox(); }
+function updateDepositBox(){
+  const total = parseFloat(document.getElementById('f_total').value) || 0;
+  const deposit = total * 0.5;
+  const balance = total - deposit;
+  document.getElementById('depositAmount').textContent = fmtMoney(deposit);
+  document.getElementById('balanceAmount').textContent = fmtMoney(balance);
 }
 
-function removeDoor(id){
-  const p=currentProject(); if(!p) return;
-  p.doors=p.doors.filter(d=>d.id!==id);
-  p.doors.forEach((d,i)=>d.num=i+1);
-  save();
-  renderDoors();
-  updateProjHeader();
+/* ---------------------------------------------------------
+   SIGNATURE PAD (touch + mouse)
+--------------------------------------------------------- */
+const pads = {}; // id -> {canvas, ctx, drawing, hasInk}
+
+function setupPad(canvasId){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas || pads[canvasId]) return;
+  const ratio = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * ratio;
+  canvas.height = 180 * ratio;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(ratio, ratio);
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#132833';
+  pads[canvasId] = {canvas, ctx, drawing:false, hasInk:false, last:null};
+
+  const getPos = (e) => {
+    const r = canvas.getBoundingClientRect();
+    const point = e.touches ? e.touches[0] : e;
+    return {x: point.clientX - r.left, y: point.clientY - r.top};
+  };
+  const start = (e) => {
+    e.preventDefault();
+    const p = pads[canvasId];
+    p.drawing = true;
+    p.last = getPos(e);
+  };
+  const move = (e) => {
+    const p = pads[canvasId];
+    if(!p.drawing) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    p.ctx.beginPath();
+    p.ctx.moveTo(p.last.x, p.last.y);
+    p.ctx.lineTo(pos.x, pos.y);
+    p.ctx.stroke();
+    p.last = pos;
+    p.hasInk = true;
+  };
+  const end = (e) => { pads[canvasId].drawing = false; };
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', end);
+}
+function clearPad(id){
+  const p = pads[id];
+  if(!p) return;
+  p.ctx.clearRect(0,0,p.canvas.width,p.canvas.height);
+  p.hasInk = false;
+}
+function getPadDataURL(id){
+  const p = pads[id];
+  if(!p || !p.hasInk) return null;
+  return p.canvas.toDataURL('image/png');
 }
 
-function setField(id,field,val){
-  const p=currentProject(); if(!p) return;
-  const d=p.doors.find(d=>d.id===id);
-  if(d){ d[field]=val; save(); updateDoorSummary(id); }
-}
-
-function handleSelect(id,field,val,customField,customId){
-  setField(id,field,val);
-  const el=document.getElementById(customId);
-  if(el) el.style.display=val==='Personalizado'?'block':'none';
-  if(val!=='Personalizado') setField(id,customField,'');
-}
-
-function setToggle(id,field,val){
-  const p=currentProject(); if(!p) return;
-  const d=p.doors.find(d=>d.id===id);
-  if(d){
-    d[field]=val; save();
-    document.querySelectorAll(`[data-tog="${id}-${field}"]`).forEach(b=>b.classList.toggle('active',b.dataset.val===val));
-    updateDoorSummary(id);
-    if(field==='apertura'||field==='bisagra') updateDirBadge(id);
+/* ---------------------------------------------------------
+   NAVIGATION
+--------------------------------------------------------- */
+function goToSignChoice(){
+  if(!document.getElementById('f_cliente').value.trim()){
+    toast('Escribe el nombre del cliente primero'); return;
   }
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+}
+function backToStep1(){
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step1').classList.add('active');
+  document.getElementById('inPersonCard').style.display='none';
+  document.getElementById('remoteCard').style.display='none';
+}
+function showInPerson(){
+  document.getElementById('inPersonCard').style.display='block';
+  document.getElementById('remoteCard').style.display='none';
+  setTimeout(()=>{ setupPad('sigRep'); setupPad('sigCliente'); }, 30);
+}
+function showRemoteLink(){
+  document.getElementById('remoteCard').style.display='block';
+  document.getElementById('inPersonCard').style.display='none';
+  setTimeout(()=>{ setupPad('sigRep2'); }, 30);
 }
 
-function dirLabel(d){ return `${d.apertura==='IN'?'Hacia adentro':'Hacia afuera'} · Bisagra ${d.bisagra.toLowerCase()}`; }
-
-function updateDirBadge(id){
-  const el=document.getElementById('dir-badge-'+id);
-  const p=currentProject();
-  const d=p&&p.doors.find(d=>d.id===id);
-  if(el&&d) el.textContent=dirLabel(d);
+/* ---------------------------------------------------------
+   DATA COLLECTION
+--------------------------------------------------------- */
+function collectFormData(){
+  return {
+    fecha: document.getElementById('f_fecha').value || todayISO(),
+    cliente: document.getElementById('f_cliente').value,
+    telefono: document.getElementById('f_telefono').value,
+    email: document.getElementById('f_email').value,
+    direccion: document.getElementById('f_direccion').value,
+    productos: products,
+    total: parseFloat(document.getElementById('f_total').value)||0,
+    descripcion: document.getElementById('f_descripcion').value,
+    fechaEstimada: document.getElementById('f_fechaEstimada').value
+  };
 }
 
-function updateDoorSummary(id){
-  const p=currentProject();
-  const d=p&&p.doors.find(d=>d.id===id);
-  if(!d) return;
-  const el=document.getElementById('door-summary-'+id);
-  const tipo=d.tipo==='Personalizado'&&d.tipoCustom?d.tipoCustom:d.tipo||'Sin tipo';
-  if(el) el.textContent=`Mocheta: ${d.altoIzq||'?'}"×${d.largoAbajo||'?'}" · ${tipo}`;
-  updateProjHeader();
+/* ---------------------------------------------------------
+   ENCODE / DECODE (base64 in URL fragment — no server needed)
+--------------------------------------------------------- */
+function encodeData(obj){
+  return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+}
+function decodeData(str){
+  return JSON.parse(decodeURIComponent(escape(atob(str))));
 }
 
-function toggleExpand(id){
-  const body=document.getElementById('door-body-'+id);
-  const icon=document.getElementById('chevron-'+id);
-  const open=body.style.display==='block';
-  body.style.display=open?'none':'block';
-  icon.className=open?'ti ti-chevron-down':'ti ti-chevron-up';
+function buildRemoteLink(){
+  const data = collectFormData();
+  if(!data.cliente){ toast('Falta el nombre del cliente'); return; }
+  data.repSignature = getPadDataURL('sigRep2');
+  data.repFecha = data.repSignature ? todayISO() : null;
+
+  const encoded = encodeData(data);
+  const base = location.origin + location.pathname;
+  const url = base + '#s=' + encoded;
+
+  document.getElementById('remoteLinkInput').value = url;
+  document.getElementById('linkResult').style.display = 'block';
+}
+function copyLink(){
+  const input = document.getElementById('remoteLinkInput');
+  input.select();
+  input.setSelectionRange(0, 99999);
+  navigator.clipboard && navigator.clipboard.writeText(input.value);
+  document.execCommand && document.execCommand('copy');
+  toast('Enlace copiado');
 }
 
-function mkSelect(doorId, field, customField, opts, val, customVal){
-  const cid=`cr-${doorId}-${field}`;
-  const showC = val==='Personalizado';
-  return `<select onchange="handleSelect(${doorId},'${field}','${customField ? customField : ''}'+this.value,'${customField}','${cid}')">
-    <option value="">Seleccionar</option>
-    ${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}
-  </select>
-  <div class="custom-reveal" id="${cid}" style="${showC?'display:block':''}">
-    <input type="text" placeholder="Escribe aquí..." value="${customVal||''}" oninput="setField(${doorId},'${customField}',this.value)">
-  </div>`;
-}
+/* ---------------------------------------------------------
+   SIGN MODE (when link is opened)
+--------------------------------------------------------- */
+let signData = null;
 
-function mkSelectSimple(doorId, field, customField, opts, val, customVal){
-  const cid=`cr-${doorId}-${field}`;
-  const showC = val==='Personalizado';
-  return `<select onchange="handleSelectSimple(${doorId},'${field}','${customField}',this.value,'${cid}')">
-    <option value="">Seleccionar</option>
-    ${opts.map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}
-  </select>
-  <div class="custom-reveal" id="${cid}" style="${showC?'display:block':''}">
-    <input type="text" placeholder="Escribe aquí..." value="${customVal||''}" oninput="setField(${doorId},'${customField}',this.value)">
-  </div>`;
-}
-
-function handleSelectSimple(id,field,customField,val,cid){
-  setField(id,field,val);
-  const el=document.getElementById(cid);
-  if(el) el.style.display=val==='Personalizado'?'block':'none';
-  if(val!=='Personalizado') setField(id,customField,'');
-}
-
-function renderDoors(){
-  const p=currentProject();
-  const list=document.getElementById('doors-list');
-  if(!p||!p.doors.length){
-    list.innerHTML='<div class="empty-state"><i class="ti ti-door-off" aria-hidden="true"></i><p>Sin puertas. Toca "+ Agregar puerta".</p></div>';
+function initSignModeIfNeeded(){
+  const hash = location.hash;
+  if(!hash.startsWith('#s=')) return;
+  try{
+    signData = decodeData(hash.slice(3));
+  }catch(e){
+    toast('Enlace inválido o dañado');
     return;
   }
-  list.innerHTML=p.doors.map(d=>{
-    const tipoDisplay=d.tipo==='Personalizado'&&d.tipoCustom?d.tipoCustom:d.tipo||'Sin tipo';
-    return `
-    <div class="door-card" id="door-${d.id}">
-      <div class="door-card-header" onclick="toggleExpand(${d.id})">
-        <div class="door-num">${d.num}</div>
-        <div class="door-title">
-          <strong>Puerta ${d.num}</strong>
-          <span id="door-summary-${d.id}">Mocheta: ${d.altoIzq||'?'}"×${d.largoAbajo||'?'}" · ${tipoDisplay}</span>
-        </div>
-        <div style="display:flex;gap:5px" onclick="event.stopPropagation()">
-          <button class="btn-icon del" onclick="removeDoor(${d.id})" aria-label="Eliminar"><i class="ti ti-trash" aria-hidden="true"></i></button>
-        </div>
-        <i class="ti ti-chevron-down" id="chevron-${d.id}" style="font-size:16px;color:var(--color-text-secondary)" aria-hidden="true"></i>
-      </div>
-      <div class="door-body" id="door-body-${d.id}" style="display:none">
+  document.getElementById('createMode').style.display = 'none';
+  document.getElementById('signMode').style.display = 'block';
+  document.getElementById('headerSub').textContent = 'Revisión y firma de contrato';
 
-        <div class="section-label"><i class="ti ti-ruler-measure" aria-hidden="true" style="font-size:13px"></i> Medidas del vano</div>
-        <div class="mocheta-diagram">
-          <svg class="mocheta-svg" width="176" height="130" viewBox="0 0 176 130">
-            <rect x="28" y="12" width="120" height="106" rx="2" fill="none" stroke="#93B8E8" stroke-width="1.5" stroke-dasharray="4,3"/>
-            <rect x="40" y="24" width="96" height="82" rx="2" fill="#EBF2FD" stroke="#6CA3D8" stroke-width="1"/>
-            <text x="88" y="66" text-anchor="middle" font-size="9" fill="#0A1628" font-family="sans-serif">VANO</text>
-            <line x1="16" y1="12" x2="16" y2="118" stroke="#2563C5" stroke-width="1.5"/>
-            <line x1="12" y1="12" x2="20" y2="12" stroke="#2563C5" stroke-width="1.5"/>
-            <line x1="12" y1="118" x2="20" y2="118" stroke="#2563C5" stroke-width="1.5"/>
-            <text x="5" y="65" font-size="7.5" fill="#1B4F9C" font-family="sans-serif" text-anchor="middle" transform="rotate(-90,5,65)">Alto Izq</text>
-            <line x1="160" y1="12" x2="160" y2="118" stroke="#2563C5" stroke-width="1.5"/>
-            <line x1="156" y1="12" x2="164" y2="12" stroke="#2563C5" stroke-width="1.5"/>
-            <line x1="156" y1="118" x2="164" y2="118" stroke="#2563C5" stroke-width="1.5"/>
-            <text x="171" y="65" font-size="7.5" fill="#1B4F9C" font-family="sans-serif" text-anchor="middle" transform="rotate(90,171,65)">Alto Der</text>
-            <line x1="28" y1="126" x2="148" y2="126" stroke="#2563C5" stroke-width="1.5"/>
-            <line x1="28" y1="122" x2="28" y2="130" stroke="#2563C5" stroke-width="1.5"/>
-            <line x1="148" y1="122" x2="148" y2="130" stroke="#2563C5" stroke-width="1.5"/>
-            <text x="88" y="135" font-size="7.5" fill="#1B4F9C" font-family="sans-serif" text-anchor="middle">Largo abajo</text>
-            <line x1="28" y1="5" x2="148" y2="5" stroke="#6CA3D8" stroke-width="1"/>
-            <line x1="28" y1="2" x2="28" y2="8" stroke="#6CA3D8" stroke-width="1"/>
-            <line x1="148" y1="2" x2="148" y2="8" stroke="#6CA3D8" stroke-width="1"/>
-            <text x="88" y="3" font-size="7" fill="#1B4F9C" font-family="sans-serif" text-anchor="middle">Largo arriba</text>
-          </svg>
-        </div>
+  document.getElementById('s_cliente').textContent = signData.cliente || '';
+  document.getElementById('s_email').textContent = signData.email || '';
+  document.getElementById('s_telefono').textContent = signData.telefono || '';
+  document.getElementById('s_direccion').textContent = signData.direccion || '';
+  document.getElementById('s_fecha').textContent = signData.fecha || '';
+  document.getElementById('s_total').textContent = fmtMoney(signData.total);
+  document.getElementById('s_descripcion').textContent = signData.descripcion || '';
+  document.getElementById('s_fechaEstimada').textContent = signData.fechaEstimada || '';
 
-        <div class="field-row">
-          <div class="field field-unit">
-            <label>Alto lado izquierdo</label>
-            <input type="number" step="0.125" placeholder='ej. 80"' value="${d.altoIzq}" oninput="setField(${d.id},'altoIzq',this.value)">
-            <span class="unit">"</span>
-          </div>
-          <div class="field field-unit">
-            <label>Alto lado derecho</label>
-            <input type="number" step="0.125" placeholder='ej. 80"' value="${d.altoDer}" oninput="setField(${d.id},'altoDer',this.value)">
-            <span class="unit">"</span>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field field-unit">
-            <label>Largo abajo</label>
-            <input type="number" step="0.125" placeholder='ej. 36"' value="${d.largoAbajo}" oninput="setField(${d.id},'largoAbajo',this.value)">
-            <span class="unit">"</span>
-          </div>
-          <div class="field field-unit">
-            <label>Largo arriba</label>
-            <input type="number" step="0.125" placeholder='ej. 36"' value="${d.largoArriba}" oninput="setField(${d.id},'largoArriba',this.value)">
-            <span class="unit">"</span>
-          </div>
-        </div>
-        <div class="field-row full">
-          <div class="field field-unit">
-            <label>Ancho de la mocheta</label>
-            <input type="number" step="0.125" placeholder='ej. 4"' value="${d.anchoMocheta}" oninput="setField(${d.id},'anchoMocheta',this.value)">
-            <span class="unit">"</span>
-          </div>
-        </div>
+  const deposit = (signData.total||0) * 0.5;
+  const balance = (signData.total||0) - deposit;
+  document.getElementById('s_depositText').textContent =
+    'Depósito inicial (50%): ' + fmtMoney(deposit) + ' — Balance restante: ' + fmtMoney(balance);
 
-        <div class="section-label"><i class="ti ti-adjustments" aria-hidden="true" style="font-size:13px"></i> Tipo y calidad</div>
-        <div class="field-row">
-          <div class="field">
-            <label>Tipo de puerta</label>
-            ${mkSelectSimple(d.id,'tipo','tipoCustom',TIPOS,d.tipo,d.tipoCustom)}
-          </div>
-          <div class="field">
-            <label>Calidad aluminio</label>
-            ${mkSelectSimple(d.id,'calidad','calidadCustom',CALIDADES,d.calidad,d.calidadCustom)}
-          </div>
-        </div>
+  const body = document.getElementById('s_prodBody');
+  body.innerHTML = '';
+  (signData.productos||[]).forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.cant}</td><td>${p.descripcion}</td><td>${p.medidas}</td><td>${p.material}</td><td>${p.color}</td><td>${fmtMoney(p.precio)}</td><td>${fmtMoney(p.cant*p.precio)}</td>`;
+    body.appendChild(tr);
+  });
 
-        <div class="section-label"><i class="ti ti-door-enter" aria-hidden="true" style="font-size:13px"></i> Dirección de apertura</div>
-        <div style="margin-bottom:8px">
-          <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:5px">Tipo</div>
-          <div class="toggle-group">
-            <button class="toggle-btn ${d.apertura==='IN'?'active':''}" data-tog="${d.id}-apertura" data-val="IN" onclick="setToggle(${d.id},'apertura','IN')">IN · Adentro</button>
-            <button class="toggle-btn ${d.apertura==='OUT'?'active':''}" data-tog="${d.id}-apertura" data-val="OUT" onclick="setToggle(${d.id},'apertura','OUT')">OUT · Afuera</button>
-          </div>
-        </div>
-        <div style="margin-bottom:8px">
-          <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:5px">Bisagras</div>
-          <div class="toggle-group">
-            <button class="toggle-btn ${d.bisagra==='IZQUIERDA'?'active':''}" data-tog="${d.id}-bisagra" data-val="IZQUIERDA" onclick="setToggle(${d.id},'bisagra','IZQUIERDA')">Izquierda</button>
-            <button class="toggle-btn ${d.bisagra==='DERECHA'?'active':''}" data-tog="${d.id}-bisagra" data-val="DERECHA" onclick="setToggle(${d.id},'bisagra','DERECHA')">Derecha</button>
-          </div>
-        </div>
-        <div class="direction-badge" id="dir-badge-${d.id}"><i class="ti ti-door-enter" aria-hidden="true"></i>${dirLabel(d)}</div>
-
-        <div class="section-label"><i class="ti ti-palette" aria-hidden="true" style="font-size:13px"></i> Acabados y colores</div>
-        <div class="field-row">
-          <div class="field"><label>Tipo/color cristal</label>${mkSelectSimple(d.id,'cristal','cristalCustom',GLASS,d.cristal,d.cristalCustom)}</div>
-          <div class="field"><label>Color marco</label>${mkSelectSimple(d.id,'colorMarco','marcoCustom',COLORS,d.colorMarco,d.marcoCustom)}</div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>Color puerta</label>${mkSelectSimple(d.id,'colorPuerta','puertaCustom',COLORS,d.colorPuerta,d.puertaCustom)}</div>
-          <div class="field"><label>Glass adapters</label>${mkSelectSimple(d.id,'colorAdapters','adaptersCustom',COLORS,d.colorAdapters,d.adaptersCustom)}</div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>Color intermedios</label>${mkSelectSimple(d.id,'colorIntermedios','intermediosCustom',COLORS,d.colorIntermedios,d.intermediosCustom)}</div>
-          <div class="field"><label>Diseño / modelo</label><input type="text" placeholder="ej. Serie Milano" value="${d.diseno}" oninput="setField(${d.id},'diseno',this.value)"></div>
-        </div>
-
-        <div class="section-label"><i class="ti ti-notes" aria-hidden="true" style="font-size:13px"></i> Observaciones</div>
-        <div class="field-row full">
-          <div class="field"><label>Observaciones generales</label><textarea placeholder="Notas de instalación..." oninput="setField(${d.id},'obs',this.value)">${d.obs}</textarea></div>
-        </div>
-        <div class="field-row full">
-          <div class="field"><label>Notas de acabados</label><textarea placeholder="Detalles especiales..." oninput="setField(${d.id},'notas',this.value)">${d.notas}</textarea></div>
-        </div>
-      </div>
-    </div>`; }).join('');
+  setTimeout(()=>setupPad('sigClienteRemote'), 30);
 }
 
-function getDisplayVal(val, customVal){ return val==='Personalizado'&&customVal ? customVal : val||'—'; }
+/* ---------------------------------------------------------
+   PDF GENERATION
+--------------------------------------------------------- */
+function generateFinalPDF(isInPerson){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'pt', format:'letter'});
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 50;
+  let y = 60;
+  const blue = [28,93,120];
+  const ink = [30,40,45];
 
-function renderTable(){
-  const p=currentProject();
-  const c=document.getElementById('table-container');
-  if(!p||!p.doors.length){ c.innerHTML='<div class="empty-state"><i class="ti ti-table-off" aria-hidden="true"></i><p>Agrega puertas para ver la tabla.</p></div>'; return; }
-  c.innerHTML=`<div class="table-wrap"><table>
-    <thead><tr><th>#</th><th>Alto Izq/Der</th><th>Abajo/Arriba</th><th>Mocheta</th><th>Tipo</th><th>Calidad</th><th>Apertura</th><th>Cristal</th><th>Marco</th></tr></thead>
-    <tbody>${p.doors.map(d=>`
-      <tr>
-        <td class="td-num">${d.num}</td>
-        <td>${d.altoIzq||'—'}" / ${d.altoDer||'—'}"</td>
-        <td>${d.largoAbajo||'—'}" / ${d.largoArriba||'—'}"</td>
-        <td>${d.anchoMocheta||'—'}"</td>
-        <td>${getDisplayVal(d.tipo,d.tipoCustom)}</td>
-        <td>${getDisplayVal(d.calidad,d.calidadCustom)}</td>
-        <td><span class="tag tag-${d.apertura.toLowerCase()}">${d.apertura}</span> ${d.bisagra}</td>
-        <td>${getDisplayVal(d.cristal,d.cristalCustom)}</td>
-        <td>${getDisplayVal(d.colorMarco,d.marcoCustom)}</td>
-      </tr>
-      ${(d.colorPuerta||d.colorAdapters||d.colorIntermedios||d.obs||d.notas||d.diseno)?`
-      <tr class="sub-row"><td colspan="9" style="padding:8px 10px">
-        <div class="sub-grid">
-          ${d.colorPuerta?`<div class="sub-item"><label>Color puerta: </label><span>${getDisplayVal(d.colorPuerta,d.puertaCustom)}</span></div>`:''}
-          ${d.colorAdapters?`<div class="sub-item"><label>Adapters: </label><span>${getDisplayVal(d.colorAdapters,d.adaptersCustom)}</span></div>`:''}
-          ${d.colorIntermedios?`<div class="sub-item"><label>Intermedios: </label><span>${getDisplayVal(d.colorIntermedios,d.intermediosCustom)}</span></div>`:''}
-          ${d.diseno?`<div class="sub-item"><label>Diseño: </label><span>${d.diseno}</span></div>`:''}
-          ${d.obs?`<div class="sub-item" style="grid-column:1/-1"><label>Obs: </label><span>${d.obs}</span></div>`:''}
-          ${d.notas?`<div class="sub-item" style="grid-column:1/-1"><label>Notas: </label><span>${d.notas}</span></div>`:''}
-        </div>
-      </td></tr>`:''}
-    `).join('')}</tbody></table></div>`;
+  let data, repSig, repFecha, cliSig, cliFecha;
+
+  if(isInPerson){
+    data = collectFormData();
+    repSig = getPadDataURL('sigRep');
+    cliSig = getPadDataURL('sigCliente');
+    if(!repSig || !cliSig){ toast('Ambas firmas son requeridas'); return; }
+    repFecha = todayISO();
+    cliFecha = todayISO();
+  } else {
+    data = signData;
+    repSig = data.repSignature || null;
+    repFecha = data.repFecha || '';
+    cliSig = getPadDataURL('sigClienteRemote');
+    if(!cliSig){ toast('Falta tu firma'); return; }
+    cliFecha = todayISO();
+  }
+
+  function checkPageBreak(needed){
+    if(y + needed > pageH - 60){ doc.addPage(); y = 60; }
+  }
+  function heading(text, size){
+    checkPageBreak(30);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(size||13);
+    doc.setTextColor(...blue);
+    doc.text(text, margin, y);
+    y += 6;
+    doc.setDrawColor(...blue);
+    doc.setLineWidth(1);
+    doc.line(margin, y, pageW-margin, y);
+    y += 18;
+    doc.setTextColor(...ink);
+  }
+  function paragraph(text, opts){
+    opts = opts || {};
+    doc.setFont('helvetica', opts.bold ? 'bold' : 'normal');
+    doc.setFontSize(opts.size || 10.5);
+    const lines = doc.splitTextToSize(text, pageW - margin*2);
+    lines.forEach(line=>{
+      checkPageBreak(14);
+      doc.text(line, margin, y);
+      y += 14;
+    });
+    y += 4;
+  }
+  function bulletList(items){
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(10.5);
+    items.forEach(it=>{
+      const lines = doc.splitTextToSize('•  ' + it, pageW - margin*2 - 8);
+      lines.forEach(line=>{
+        checkPageBreak(14);
+        doc.text(line, margin+6, y);
+        y += 14;
+      });
+    });
+    y += 6;
+  }
+
+  // ---- PAGE 1 ----
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(20);
+  doc.setTextColor(...blue);
+  doc.text('ADOMINIUM', margin, y); y += 22;
+  doc.setFontSize(13);
+  doc.text('CONTRATO DE FABRICACIÓN, VENTA Y/O INSTALACIÓN DE', margin, y); y+=16;
+  doc.text('PUERTAS Y VENTANAS', margin, y); y += 26;
+  doc.setTextColor(...ink);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(11);
+
+  const fields = [
+    ['Fecha:', data.fecha],
+    ['Cliente:', data.cliente],
+    ['Teléfono:', data.telefono],
+    ['Correo electrónico:', data.email],
+    ['Dirección del proyecto:', data.direccion]
+  ];
+  fields.forEach(([label, val])=>{
+    doc.setFont('helvetica','bold');
+    doc.text(label, margin, y);
+    doc.setFont('helvetica','normal');
+    const lines = doc.splitTextToSize(String(val||''), pageW - margin*2 - 150);
+    doc.text(lines, margin+150, y);
+    y += 14*lines.length + 4;
+  });
+  y += 8;
+
+  heading('DESCRIPCIÓN DEL PROYECTO');
+  paragraph('Adominium acuerda fabricar, suministrar y/o instalar puertas y ventanas según las especificaciones establecidas en este documento.');
+  paragraph('Este documento funciona como cotización y contrato. La firma, aceptación electrónica o envío del depósito constituye aceptación total de los términos establecidos.');
+
+  heading('DESGLOSE DE PRODUCTOS Y SERVICIOS');
+  // table header
+  checkPageBreak(20);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9.5);
+  const cols = [
+    {label:'Cant.', w:30},
+    {label:'Descripción', w:95},
+    {label:'Medidas', w:75},
+    {label:'Material', w:70},
+    {label:'Color', w:55},
+    {label:'Precio/u.', w:60},
+    {label:'Subtotal', w:65}
+  ];
+  let x = margin;
+  cols.forEach(c=>{ doc.text(c.label, x, y); x += c.w; });
+  y += 6;
+  doc.setDrawColor(180,180,180);
+  doc.line(margin, y, pageW-margin, y);
+  y += 12;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9.5);
+  (data.productos||[]).forEach(p=>{
+    checkPageBreak(30);
+    x = margin;
+    const rowVals = [String(p.cant), p.descripcion||'', p.medidas||'', p.material||'', p.color||'', fmtMoney(p.precio), fmtMoney(p.cant*p.precio)];
+    let maxLines = 1;
+    const wrapped = cols.map((c,i)=>{
+      const l = doc.splitTextToSize(rowVals[i], c.w-4);
+      maxLines = Math.max(maxLines, l.length);
+      return l;
+    });
+    wrapped.forEach((lines,i)=>{
+      doc.text(lines, x, y);
+      x += cols[i].w;
+    });
+    y += 12*maxLines + 4;
+  });
+  y += 8;
+
+  heading('TOTAL DEL PROYECTO');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.text(fmtMoney(data.total), margin, y);
+  y += 18;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10.5);
+  paragraph(data.descripcion || '');
+
+  const deposit = (data.total||0)*0.5;
+  const balance = (data.total||0)-deposit;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  checkPageBreak(20);
+  doc.text('Depósito inicial requerido (50%): ' + fmtMoney(deposit), margin, y);
+  y += 16;
+  doc.text('Balance restante (50%): ' + fmtMoney(balance), margin, y);
+  y += 20;
+
+  // ---- PAGE 2+ : boilerplate ----
+  doc.addPage(); y = 60;
+  heading('FORMA DE PAGO');
+  paragraph('El cliente pagará un depósito inicial equivalente al cincuenta por ciento (50%) del valor total al aprobar esta cotización y firmar este contrato, equivalente a ' + fmtMoney(deposit) + '.');
+  paragraph('El depósito será utilizado para materiales y fabricación.');
+  paragraph('El balance restante del cincuenta por ciento (50%), equivalente a ' + fmtMoney(balance) + ', será pagado:');
+  paragraph('Fabricación solamente: Al momento del recogido del producto.', {bold:true});
+  paragraph('Entrega y/o instalación por Adominium: Al momento de la entrega o instalación.', {bold:true});
+  paragraph('El balance pendiente constituye una obligación inmediata de pago y no representa un plazo abierto.');
+  paragraph('Adominium podrá detener entrega, instalación o trabajos pendientes mientras exista cualquier balance pendiente.');
+  paragraph('Se aceptan pagos por ATH Móvil, PayPal, efectivo y cheque. El depósito inicial del 50% puede realizarse con cheque regular. El balance final del 50% solo será aceptado mediante ATH Móvil, PayPal, efectivo o cheque de gerente.');
+
+  heading('PRODUCTOS PERSONALIZADOS');
+  paragraph('Los productos son fabricados específicamente según medidas, diseños y especificaciones aprobadas por el cliente.');
+  paragraph('Por su naturaleza personalizada, una vez iniciado el proceso de fabricación, el depósito no será reembolsable.');
+
+  heading('MEDIDAS PROPORCIONADAS POR EL CLIENTE');
+  paragraph('Cuando el cliente proporciona medidas, acepta responsabilidad por la exactitud de la información entregada.');
+  paragraph('Adominium fabricará utilizando dichas medidas y no será responsable por:');
+  bulletList(['errores de medición;','productos que no ajusten por medidas incorrectas;','modificaciones necesarias causadas por información incorrecta.']);
+
+  heading('INSTALACIÓN POR ADOMINIUM');
+  paragraph('Cuando Adominium realiza instalación, el cliente reconoce que pueden existir condiciones ocultas dentro de la propiedad, incluyendo:');
+  bulletList(['tuberías;','cables eléctricos;','estructuras internas;','materiales deteriorados;','daños existentes.']);
+  paragraph('Adominium realizará el trabajo utilizando métodos razonables según las condiciones visibles.');
+  paragraph('La inspección realizada no constituye una certificación de la resistencia estructural de paredes, mochetas o materiales existentes.');
+  paragraph('Adominium no será responsable por daños ocasionados por condiciones ocultas o no visibles razonablemente antes o durante el trabajo.');
+
+  heading('DESINSTALACIÓN DE PRODUCTOS EXISTENTES Y CONDICIONES DE LA MOCHETA');
+  paragraph('Cuando Adominium sea contratada para remover puertas, ventanas u otros productos existentes, el cliente reconoce que la remoción puede revelar condiciones previamente ocultas.');
+  paragraph('La estructura existente, mocheta, concreto, paredes, anclajes y materiales pueden presentar deterioro o debilidad debido a edad, humedad, corrosión, construcción previa o instalación incorrecta.');
+  paragraph('Adominium no será responsable por daños causados durante la desinstalación cuando estos sean consecuencia de:');
+  bulletList(['deterioro previo;','materiales debilitados;','mala construcción existente;','humedad o corrosión;','instalación anterior incorrecta;','falta de resistencia de la estructura.']);
+  paragraph('Si durante la remoción resulta dañada la mocheta, pared o área existente debido a sus condiciones previas, cualquier reparación será responsabilidad del cliente.');
+  paragraph('Adominium no está obligada a reconstruir, reparar o modificar estructuras existentes salvo que dicho trabajo sea cotizado expresamente.');
+
+  heading('CONDICIONES DE LA PROPIEDAD');
+  paragraph('El cliente reconoce que la propiedad puede presentar:');
+  bulletList(['paredes o mochetas fuera de escuadra;','desniveles;','aperturas irregulares;','deformaciones;','daños previos;','materiales deteriorados.']);
+  paragraph('Adominium no garantiza condiciones ideales de construcción.');
+  paragraph('Cualquier trabajo adicional necesario debido a condiciones existentes, reparaciones o modificaciones no incluidas podrá generar cargos adicionales.');
+
+  heading('INSTALACIÓN POR TERCEROS');
+  paragraph('Si el cliente o un tercero realiza la instalación, Adominium será responsable únicamente por fabricar el producto según las especificaciones aprobadas.');
+  paragraph('La instalación, ajustes, sellado, nivelación y funcionamiento final serán responsabilidad del instalador.');
+  paragraph('Adominium no será responsable por daños, filtraciones o fallas causadas por instalación realizada por terceros.');
+
+  heading('ENTREGA, RECOGIDO Y TRANSPORTE');
+  paragraph('La responsabilidad de Adominium dependerá del servicio contratado.');
+  paragraph('Cuando sea únicamente fabricación, la responsabilidad termina cuando el producto es recogido por el cliente o tercero autorizado.');
+  paragraph('Después del recogido, el cliente asume responsabilidad por transporte, manejo y almacenamiento.');
+  paragraph('Adominium no será responsable por daños causados durante:');
+  bulletList(['transporte realizado por el cliente;','transporte realizado por terceros;','carga o descarga realizada por personas ajenas a Adominium.']);
+  paragraph('Cuando Adominium realice transporte, será responsable mientras el producto esté bajo su manejo.');
+  paragraph('El cliente deberá inspeccionar el producto al momento de entrega o recogido.');
+  paragraph('Si el cliente no recoge el producto luego de ser notificado que está listo, podrán aplicarse cargos de almacenamiento.');
+
+  heading('SERVICIOS ADICIONALES');
+  paragraph('Instalación, transporte, desinstalación, disposición de escombros y trabajos adicionales son servicios independientes de la fabricación.');
+  paragraph('Solo serán incluidos si aparecen expresamente cotizados en este documento.');
+  paragraph('Cualquier trabajo adicional necesario durante el proyecto podrá generar cargos adicionales.');
+
+  heading('FECHA ESTIMADA DE ENTREGA O COMPLETADO');
+  paragraph('Fecha estimada: ' + (data.fechaEstimada || '—'));
+
+  heading('GARANTÍA');
+  paragraph('Adominium garantiza sus productos contra defectos de fabricación bajo uso normal por 6 meses luego de la instalación.');
+  paragraph('La garantía no cubre:');
+  bulletList(['daños por instalación de terceros;','golpes o mal uso;','modificaciones posteriores;','daños estructurales;','problemas de construcción existentes;','daños causados por factores externos.']);
+
+  heading('PROPIEDAD DEL PRODUCTO');
+  paragraph('Los productos permanecerán propiedad de Adominium hasta recibir el pago completo acordado.');
+
+  // ---- SIGNATURE PAGE ----
+  doc.addPage(); y = 60;
+  heading('ACEPTACIÓN');
+  paragraph('La firma del cliente, aceptación electrónica, confirmación escrita o envío del depósito representa aceptación completa de este contrato.');
+  y += 10;
+
+  checkPageBreak(140);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.text('Firma Cliente:', margin, y);
+  if(cliSig){ doc.addImage(cliSig, 'PNG', margin+110, y-45, 180, 60); }
+  y += 70;
+  doc.setFont('helvetica','normal');
+  doc.text('Fecha: ' + (cliFecha||''), margin, y);
+  y += 40;
+
+  checkPageBreak(140);
+  doc.setFont('helvetica','bold');
+  doc.text('Firma Representante Adominium:', margin, y);
+  if(repSig){ doc.addImage(repSig, 'PNG', margin+220, y-45, 180, 60); }
+  y += 70;
+  doc.setFont('helvetica','normal');
+  doc.text('Fecha: ' + (repFecha||''), margin, y);
+
+  // ---- SAVE ----
+  const safeName = (data.cliente||'cliente').replace(/[^a-z0-9]+/gi,'_');
+  const filename = 'Contrato_Adominium_' + safeName + '.pdf';
+  doc.save(filename);
+
+  // keep blob for share button (remote mode only)
+  lastPdfBlob = doc.output('blob');
+  lastPdfFilename = filename;
+  if(!isInPerson){
+    document.getElementById('shareRow').style.display = 'flex';
+  }
+  toast('PDF generado');
 }
 
-function renderExport(){
-  const p=currentProject();
-  const c=document.getElementById('export-preview');
-  if(!p||!p.doors.length){ c.innerHTML='<div class="empty-state"><i class="ti ti-file-off" aria-hidden="true"></i><p>Agrega puertas para generar el reporte.</p></div>'; return; }
-  c.innerHTML=`<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:0.5px solid var(--color-border-tertiary)">
-      <div style="width:36px;height:36px;border-radius:50%;background:#EBF2FD;display:flex;align-items:center;justify-content:center"><i class="ti ti-folder" style="color:#FFFFFF;font-size:18px" aria-hidden="true"></i></div>
-      <div><strong style="font-size:15px">${p.name}</strong><br><span style="font-size:12px;color:var(--color-text-secondary)">${p.doors.length} puerta${p.doors.length!==1?'s':''} · ${p.created}</span></div>
-    </div>
-    ${p.doors.map(d=>`
-      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--color-border-tertiary)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="background:#EBF2FD;color:#0A1628;padding:2px 10px;border-radius:20px;font-size:13px;font-weight:500">Puerta ${d.num}</span>
-          ${d.diseno?`<span style="font-size:12px;color:var(--color-text-secondary)">${d.diseno}</span>`:''}
-          ${d.tipo?`<span style="font-size:11px;background:#D6E4F7;color:#1B4F9C;padding:2px 7px;border-radius:4px">${getDisplayVal(d.tipo,d.tipoCustom)}</span>`:''}
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:12px">
-          <div><span style="color:var(--color-text-secondary)">Alto izq/der:</span> <strong>${d.altoIzq||'—'}" / ${d.altoDer||'—'}"</strong></div>
-          <div><span style="color:var(--color-text-secondary)">Abajo/arriba:</span> <strong>${d.largoAbajo||'—'}" / ${d.largoArriba||'—'}"</strong></div>
-          <div><span style="color:var(--color-text-secondary)">Mocheta:</span> ${d.anchoMocheta||'—'}"</div>
-          <div><span style="color:var(--color-text-secondary)">Calidad:</span> ${getDisplayVal(d.calidad,d.calidadCustom)}</div>
-          <div style="grid-column:1/-1"><span style="color:var(--color-text-secondary)">Apertura:</span> <strong>${d.apertura==='IN'?'Hacia adentro':'Hacia afuera'} · Bisagra ${d.bisagra.toLowerCase()}</strong></div>
-          <div><span style="color:var(--color-text-secondary)">Cristal:</span> ${getDisplayVal(d.cristal,d.cristalCustom)}</div>
-          <div><span style="color:var(--color-text-secondary)">Marco:</span> ${getDisplayVal(d.colorMarco,d.marcoCustom)}</div>
-          <div><span style="color:var(--color-text-secondary)">Color puerta:</span> ${getDisplayVal(d.colorPuerta,d.puertaCustom)}</div>
-          <div><span style="color:var(--color-text-secondary)">Adapters:</span> ${getDisplayVal(d.colorAdapters,d.adaptersCustom)}</div>
-          <div><span style="color:var(--color-text-secondary)">Intermedios:</span> ${getDisplayVal(d.colorIntermedios,d.intermediosCustom)}</div>
-        </div>
-        ${d.obs?`<div style="margin-top:7px;padding:6px 8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px"><span style="color:var(--color-text-secondary)">Obs: </span>${d.obs}</div>`:''}
-        ${d.notas?`<div style="margin-top:4px;padding:6px 8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px"><span style="color:var(--color-text-secondary)">Notas: </span>${d.notas}</div>`:''}
-      </div>
-    `).join('')}
-  </div>`;
+async function shareFile(){
+  if(!lastPdfBlob){ toast('Genera el PDF primero'); return; }
+  const file = new File([lastPdfBlob], lastPdfFilename, {type:'application/pdf'});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({
+        files:[file],
+        title:'Contrato firmado - Adominium',
+        text:'Aquí está mi contrato firmado.'
+      });
+    }catch(e){ /* user cancelled */ }
+  } else {
+    toast('Tu navegador no soporta compartir archivos. El PDF ya se descargó — envíalo por correo o WhatsApp manualmente.');
+  }
 }
 
-function switchTab(tab){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  const tabs=['cards','table','export'];
-  document.querySelectorAll('.tab')[tabs.indexOf(tab)].classList.add('active');
-  document.getElementById('view-'+tab).classList.add('active');
-  if(tab==='cards') renderDoors();
-  if(tab==='table') renderTable();
-  if(tab==='export') renderExport();
-}
-
-function exportPDF(){
-  const p=currentProject();
-  if(!p||!p.doors.length){ alert('Agrega puertas antes de exportar.'); return; }
-  const btn=document.querySelector('.btn-export');
-  btn.textContent='Generando PDF...';
-  const content=document.createElement('div');
-  content.style.cssText='font-family:Arial,sans-serif;padding:24px;color:#111;max-width:700px;margin:0 auto';
-  content.innerHTML=`
-    <div style="border-bottom:2px solid #0A1628;padding-bottom:12px;margin-bottom:20px">
-      <h1 style="font-size:20px;font-weight:700;color:#0A1628;margin:0">${p.name}</h1>
-      <p style="font-size:12px;color:#666;margin:4px 0 0">Reporte de puertas · ${p.doors.length} unidad${p.doors.length!==1?'es':''} · ${p.created} · Medidas en pulgadas</p>
-    </div>
-    ${p.doors.map(d=>`
-      <div style="border:1px solid #ddd;border-radius:8px;padding:14px;margin-bottom:14px;page-break-inside:avoid">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #eee">
-          <span style="background:#EBF2FD;color:#0A1628;padding:2px 10px;border-radius:20px;font-size:13px;font-weight:700">Puerta ${d.num}</span>
-          ${d.diseno?`<span style="font-size:12px;color:#666">${d.diseno}</span>`:''}
-          ${d.tipo?`<span style="background:#D6E4F7;color:#1B4F9C;padding:2px 7px;border-radius:4px;font-size:11px">${getDisplayVal(d.tipo,d.tipoCustom)}</span>`:''}
-          ${d.calidad?`<span style="background:#f5f5f5;padding:2px 7px;border-radius:4px;font-size:11px">Aluminio ${getDisplayVal(d.calidad,d.calidadCustom)}</span>`:''}
-        </div>
-        <p style="font-size:10px;font-weight:700;color:#888;margin:0 0 5px;text-transform:uppercase;letter-spacing:.5px">Medidas del vano (mocheta)</p>
-        <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:10px">
-          <tr><td style="padding:3px 8px;color:#666;width:35%">Alto izq / der</td><td style="padding:3px 8px;font-weight:600">${d.altoIzq||'—'}" / ${d.altoDer||'—'}"</td><td style="padding:3px 8px;color:#666;width:25%">Ancho mocheta</td><td style="padding:3px 8px">${d.anchoMocheta||'—'}"</td></tr>
-          <tr style="background:#f9f9f9"><td style="padding:3px 8px;color:#666">Largo abajo / arriba</td><td style="padding:3px 8px;font-weight:600">${d.largoAbajo||'—'}" / ${d.largoArriba||'—'}"</td><td style="padding:3px 8px;color:#666">Apertura</td><td style="padding:3px 8px;font-weight:600">${d.apertura==='IN'?'Adentro':'Afuera'} · Bisagra ${d.bisagra}</td></tr>
-        </table>
-        <p style="font-size:10px;font-weight:700;color:#888;margin:0 0 5px;text-transform:uppercase;letter-spacing:.5px">Acabados</p>
-        <table style="width:100%;font-size:12px;border-collapse:collapse">
-          <tr><td style="padding:3px 8px;color:#666;width:25%">Cristal</td><td style="padding:3px 8px">${getDisplayVal(d.cristal,d.cristalCustom)}</td><td style="padding:3px 8px;color:#666;width:25%">Marco</td><td style="padding:3px 8px">${getDisplayVal(d.colorMarco,d.marcoCustom)}</td></tr>
-          <tr style="background:#f9f9f9"><td style="padding:3px 8px;color:#666">Color puerta</td><td style="padding:3px 8px">${getDisplayVal(d.colorPuerta,d.puertaCustom)}</td><td style="padding:3px 8px;color:#666">Glass adapters</td><td style="padding:3px 8px">${getDisplayVal(d.colorAdapters,d.adaptersCustom)}</td></tr>
-          <tr><td style="padding:3px 8px;color:#666">Intermedios</td><td style="padding:3px 8px">${getDisplayVal(d.colorIntermedios,d.intermediosCustom)}</td><td></td><td></td></tr>
-        </table>
-        ${d.obs?`<div style="margin-top:8px;padding:6px 8px;background:#EBF2FD;border-left:3px solid #1B4F9C;font-size:11px"><strong>Obs:</strong> ${d.obs}</div>`:''}
-        ${d.notas?`<div style="margin-top:4px;padding:6px 8px;background:#EBF2FD;border-left:3px solid #1B4F9C;font-size:11px"><strong>Notas:</strong> ${d.notas}</div>`:''}
-      </div>
-    `).join('')}`;
-  html2pdf().set({margin:10,filename:`${p.name.replace(/\s+/g,'-')}.pdf`,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).save().then(()=>{ btn.innerHTML='<i class="ti ti-download"></i> Descargar PDF'; });
-}
+/* ---------------------------------------------------------
+   INIT
+--------------------------------------------------------- */
+document.getElementById('f_fecha').value = todayISO();
+addProductRow();
+initSignModeIfNeeded();
 </script>
-
-load();
+</body>
+</html>
 </script>
