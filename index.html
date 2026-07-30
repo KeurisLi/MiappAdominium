@@ -123,6 +123,13 @@
   }
   #toast.show{opacity:1;}
   .remove-row{color:var(--danger);cursor:pointer;font-size:18px;font-weight:bold;}
+  .contract-text{max-height:340px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:#fbfcfd;font-size:13px;line-height:1.5;}
+  .contract-text h3{font-size:12.5px;color:var(--blue-dark);text-transform:uppercase;letter-spacing:.3px;margin:16px 0 6px;border-bottom:1px solid var(--line);padding-bottom:4px;}
+  .contract-text h3:first-child{margin-top:0;}
+  .contract-text p{margin:0 0 8px;}
+  .contract-text ul{margin:0 0 8px;padding-left:20px;}
+  .contract-text li{margin-bottom:3px;}
+  #signSubmitBtn:disabled{opacity:.45;}
   @media(max-width:480px){
     .grid2{grid-template-columns:1fr;}
     table.prod{font-size:11px;}
@@ -309,7 +316,16 @@
     </div>
 
     <div class="card">
-      <h2>Firma del cliente</h2>
+      <h2>Contrato completo — léelo antes de firmar</h2>
+      <div id="s_fullContract" class="contract-text"></div>
+    </div>
+
+    <div class="card">
+      <label style="display:flex;align-items:flex-start;gap:8px;font-weight:600;">
+        <input type="checkbox" id="s_readConfirm" style="width:auto;margin-top:3px;" onchange="onReadConfirmChange()">
+        <span>He leído el contrato completo y estoy de acuerdo con sus términos.</span>
+      </label>
+      <h2 style="margin-top:18px;">Firma del cliente</h2>
       <p class="hint">Firma con tu dedo en el recuadro de abajo.</p>
       <div class="sig-pad-wrap"><canvas class="sig-pad" id="sigClienteRemote"></canvas></div>
       <div class="sig-controls">
@@ -317,10 +333,7 @@
         <button class="btn small secondary" onclick="clearPad('sigClienteRemote')">Borrar</button>
       </div>
       <div class="btn-row">
-        <button class="btn" onclick="generateFinalPDF(false)">✅ Firmar y descargar contrato en PDF</button>
-      </div>
-      <div id="shareRow" class="btn-row" style="display:none;">
-        <button class="btn secondary" onclick="shareFile()">📤 Enviar PDF firmado por WhatsApp / Correo</button>
+        <button class="btn" id="signSubmitBtn" disabled onclick="generateFinalPDF(false)">✅ Firmar y descargar contrato en PDF</button>
       </div>
     </div>
   </div>
@@ -357,7 +370,7 @@ function addProductRow(data){
   renderProductTable();
 }
 function removeProductRow(id){
-  products = products.filter(p=>p.id!==id);
+  products = products.filter(p=>String(p.id)!==String(id));
   renderProductTable();
 }
 function renderProductTable(){
@@ -397,6 +410,87 @@ function updateDepositBox(){
   const balance = total - deposit;
   document.getElementById('depositAmount').textContent = fmtMoney(deposit);
   document.getElementById('balanceAmount').textContent = fmtMoney(balance);
+}
+
+/* ---------------------------------------------------------
+   CONTRACT CLAUSES — single source of truth used both by the
+   PDF generator and the readable contract shown to the client
+   before they sign.
+--------------------------------------------------------- */
+function getContractClauses(deposit, balance, fechaEstimada){
+  return [
+    {title:'FORMA DE PAGO', blocks:[
+      {p:'El cliente pagará un depósito inicial equivalente al cincuenta por ciento (50%) del valor total al aprobar esta cotización y firmar este contrato, equivalente a ' + fmtMoney(deposit) + '.'},
+      {p:'El depósito será utilizado para materiales y fabricación.'},
+      {p:'El balance restante del cincuenta por ciento (50%), equivalente a ' + fmtMoney(balance) + ', será pagado:'},
+      {p:'Fabricación solamente: Al momento del recogido del producto.', bold:true},
+      {p:'Entrega y/o instalación por Adominium: Al momento de la entrega o instalación.', bold:true},
+      {p:'El balance pendiente constituye una obligación inmediata de pago y no representa un plazo abierto.'},
+      {p:'Adominium podrá detener entrega, instalación o trabajos pendientes mientras exista cualquier balance pendiente.'},
+      {p:'Se aceptan pagos por ATH Móvil, PayPal, efectivo y cheque. El depósito inicial del 50% puede realizarse con cheque regular. El balance final del 50% solo será aceptado mediante ATH Móvil, PayPal, efectivo o cheque de gerente.'}
+    ]},
+    {title:'PRODUCTOS PERSONALIZADOS', blocks:[
+      {p:'Los productos son fabricados específicamente según medidas, diseños y especificaciones aprobadas por el cliente.'},
+      {p:'Por su naturaleza personalizada, una vez iniciado el proceso de fabricación, el depósito no será reembolsable.'}
+    ]},
+    {title:'MEDIDAS PROPORCIONADAS POR EL CLIENTE', blocks:[
+      {p:'Cuando el cliente proporciona medidas, acepta responsabilidad por la exactitud de la información entregada.'},
+      {p:'Adominium fabricará utilizando dichas medidas y no será responsable por:'},
+      {bullets:['errores de medición;','productos que no ajusten por medidas incorrectas;','modificaciones necesarias causadas por información incorrecta.']}
+    ]},
+    {title:'INSTALACIÓN POR ADOMINIUM', blocks:[
+      {p:'Cuando Adominium realiza instalación, el cliente reconoce que pueden existir condiciones ocultas dentro de la propiedad, incluyendo:'},
+      {bullets:['tuberías;','cables eléctricos;','estructuras internas;','materiales deteriorados;','daños existentes.']},
+      {p:'Adominium realizará el trabajo utilizando métodos razonables según las condiciones visibles.'},
+      {p:'La inspección realizada no constituye una certificación de la resistencia estructural de paredes, mochetas o materiales existentes.'},
+      {p:'Adominium no será responsable por daños ocasionados por condiciones ocultas o no visibles razonablemente antes o durante el trabajo.'}
+    ]},
+    {title:'DESINSTALACIÓN DE PRODUCTOS EXISTENTES Y CONDICIONES DE LA MOCHETA', blocks:[
+      {p:'Cuando Adominium sea contratada para remover puertas, ventanas u otros productos existentes, el cliente reconoce que la remoción puede revelar condiciones previamente ocultas.'},
+      {p:'La estructura existente, mocheta, concreto, paredes, anclajes y materiales pueden presentar deterioro o debilidad debido a edad, humedad, corrosión, construcción previa o instalación incorrecta.'},
+      {p:'Adominium no será responsable por daños causados durante la desinstalación cuando estos sean consecuencia de:'},
+      {bullets:['deterioro previo;','materiales debilitados;','mala construcción existente;','humedad o corrosión;','instalación anterior incorrecta;','falta de resistencia de la estructura.']},
+      {p:'Si durante la remoción resulta dañada la mocheta, pared o área existente debido a sus condiciones previas, cualquier reparación será responsabilidad del cliente.'},
+      {p:'Adominium no está obligada a reconstruir, reparar o modificar estructuras existentes salvo que dicho trabajo sea cotizado expresamente.'}
+    ]},
+    {title:'CONDICIONES DE LA PROPIEDAD', blocks:[
+      {p:'El cliente reconoce que la propiedad puede presentar:'},
+      {bullets:['paredes o mochetas fuera de escuadra;','desniveles;','aperturas irregulares;','deformaciones;','daños previos;','materiales deteriorados.']},
+      {p:'Adominium no garantiza condiciones ideales de construcción.'},
+      {p:'Cualquier trabajo adicional necesario debido a condiciones existentes, reparaciones o modificaciones no incluidas podrá generar cargos adicionales.'}
+    ]},
+    {title:'INSTALACIÓN POR TERCEROS', blocks:[
+      {p:'Si el cliente o un tercero realiza la instalación, Adominium será responsable únicamente por fabricar el producto según las especificaciones aprobadas.'},
+      {p:'La instalación, ajustes, sellado, nivelación y funcionamiento final serán responsabilidad del instalador.'},
+      {p:'Adominium no será responsable por daños, filtraciones o fallas causadas por instalación realizada por terceros.'}
+    ]},
+    {title:'ENTREGA, RECOGIDO Y TRANSPORTE', blocks:[
+      {p:'La responsabilidad de Adominium dependerá del servicio contratado.'},
+      {p:'Cuando sea únicamente fabricación, la responsabilidad termina cuando el producto es recogido por el cliente o tercero autorizado.'},
+      {p:'Después del recogido, el cliente asume responsabilidad por transporte, manejo y almacenamiento.'},
+      {p:'Adominium no será responsable por daños causados durante:'},
+      {bullets:['transporte realizado por el cliente;','transporte realizado por terceros;','carga o descarga realizada por personas ajenas a Adominium.']},
+      {p:'Cuando Adominium realice transporte, será responsable mientras el producto esté bajo su manejo.'},
+      {p:'El cliente deberá inspeccionar el producto al momento de entrega o recogido.'},
+      {p:'Si el cliente no recoge el producto luego de ser notificado que está listo, podrán aplicarse cargos de almacenamiento.'}
+    ]},
+    {title:'SERVICIOS ADICIONALES', blocks:[
+      {p:'Instalación, transporte, desinstalación, disposición de escombros y trabajos adicionales son servicios independientes de la fabricación.'},
+      {p:'Solo serán incluidos si aparecen expresamente cotizados en este documento.'},
+      {p:'Cualquier trabajo adicional necesario durante el proyecto podrá generar cargos adicionales.'}
+    ]},
+    {title:'FECHA ESTIMADA DE ENTREGA O COMPLETADO', blocks:[
+      {p:'Fecha estimada: ' + (fechaEstimada || '—')}
+    ]},
+    {title:'GARANTÍA', blocks:[
+      {p:'Adominium garantiza sus productos contra defectos de fabricación bajo uso normal por 6 meses luego de la instalación.'},
+      {p:'La garantía no cubre:'},
+      {bullets:['daños por instalación de terceros;','golpes o mal uso;','modificaciones posteriores;','daños estructurales;','problemas de construcción existentes;','daños causados por factores externos.']}
+    ]},
+    {title:'PROPIEDAD DEL PRODUCTO', blocks:[
+      {p:'Los productos permanecerán propiedad de Adominium hasta recibir el pago completo acordado.'}
+    ]}
+  ];
 }
 
 /* ---------------------------------------------------------
@@ -579,7 +673,28 @@ function initSignModeIfNeeded(){
     body.appendChild(tr);
   });
 
+  // Render the full legal text so the client can actually read it before signing
+  let fullHtml = '<h3>DESCRIPCIÓN DEL PROYECTO</h3>' +
+    '<p>Adominium acuerda fabricar, suministrar y/o instalar puertas y ventanas según las especificaciones establecidas en este documento.</p>' +
+    '<p>Este documento funciona como cotización y contrato. La firma, aceptación electrónica o envío del depósito constituye aceptación total de los términos establecidos.</p>';
+  getContractClauses(deposit, balance, signData.fechaEstimada).forEach(section=>{
+    fullHtml += '<h3>' + section.title + '</h3>';
+    section.blocks.forEach(b=>{
+      if(b.bullets){
+        fullHtml += '<ul>' + b.bullets.map(it=>'<li>'+it+'</li>').join('') + '</ul>';
+      } else {
+        fullHtml += '<p>' + b.p + '</p>';
+      }
+    });
+  });
+  fullHtml += '<h3>ACEPTACIÓN</h3><p>La firma del cliente, aceptación electrónica, confirmación escrita o envío del depósito representa aceptación completa de este contrato.</p>';
+  document.getElementById('s_fullContract').innerHTML = fullHtml;
+
   setTimeout(()=>setupPad('sigClienteRemote'), 30);
+}
+
+function onReadConfirmChange(){
+  document.getElementById('signSubmitBtn').disabled = !document.getElementById('s_readConfirm').checked;
 }
 
 /* ---------------------------------------------------------
@@ -747,78 +862,15 @@ function generateFinalPDF(isInPerson){
   doc.text('Balance restante (50%): ' + fmtMoney(balance), margin, y);
   y += 20;
 
-  // ---- PAGE 2+ : boilerplate ----
+  // ---- PAGE 2+ : boilerplate (from the same source used in the client-facing reading view) ----
   doc.addPage(); y = 60;
-  heading('FORMA DE PAGO');
-  paragraph('El cliente pagará un depósito inicial equivalente al cincuenta por ciento (50%) del valor total al aprobar esta cotización y firmar este contrato, equivalente a ' + fmtMoney(deposit) + '.');
-  paragraph('El depósito será utilizado para materiales y fabricación.');
-  paragraph('El balance restante del cincuenta por ciento (50%), equivalente a ' + fmtMoney(balance) + ', será pagado:');
-  paragraph('Fabricación solamente: Al momento del recogido del producto.', {bold:true});
-  paragraph('Entrega y/o instalación por Adominium: Al momento de la entrega o instalación.', {bold:true});
-  paragraph('El balance pendiente constituye una obligación inmediata de pago y no representa un plazo abierto.');
-  paragraph('Adominium podrá detener entrega, instalación o trabajos pendientes mientras exista cualquier balance pendiente.');
-  paragraph('Se aceptan pagos por ATH Móvil, PayPal, efectivo y cheque. El depósito inicial del 50% puede realizarse con cheque regular. El balance final del 50% solo será aceptado mediante ATH Móvil, PayPal, efectivo o cheque de gerente.');
-
-  heading('PRODUCTOS PERSONALIZADOS');
-  paragraph('Los productos son fabricados específicamente según medidas, diseños y especificaciones aprobadas por el cliente.');
-  paragraph('Por su naturaleza personalizada, una vez iniciado el proceso de fabricación, el depósito no será reembolsable.');
-
-  heading('MEDIDAS PROPORCIONADAS POR EL CLIENTE');
-  paragraph('Cuando el cliente proporciona medidas, acepta responsabilidad por la exactitud de la información entregada.');
-  paragraph('Adominium fabricará utilizando dichas medidas y no será responsable por:');
-  bulletList(['errores de medición;','productos que no ajusten por medidas incorrectas;','modificaciones necesarias causadas por información incorrecta.']);
-
-  heading('INSTALACIÓN POR ADOMINIUM');
-  paragraph('Cuando Adominium realiza instalación, el cliente reconoce que pueden existir condiciones ocultas dentro de la propiedad, incluyendo:');
-  bulletList(['tuberías;','cables eléctricos;','estructuras internas;','materiales deteriorados;','daños existentes.']);
-  paragraph('Adominium realizará el trabajo utilizando métodos razonables según las condiciones visibles.');
-  paragraph('La inspección realizada no constituye una certificación de la resistencia estructural de paredes, mochetas o materiales existentes.');
-  paragraph('Adominium no será responsable por daños ocasionados por condiciones ocultas o no visibles razonablemente antes o durante el trabajo.');
-
-  heading('DESINSTALACIÓN DE PRODUCTOS EXISTENTES Y CONDICIONES DE LA MOCHETA');
-  paragraph('Cuando Adominium sea contratada para remover puertas, ventanas u otros productos existentes, el cliente reconoce que la remoción puede revelar condiciones previamente ocultas.');
-  paragraph('La estructura existente, mocheta, concreto, paredes, anclajes y materiales pueden presentar deterioro o debilidad debido a edad, humedad, corrosión, construcción previa o instalación incorrecta.');
-  paragraph('Adominium no será responsable por daños causados durante la desinstalación cuando estos sean consecuencia de:');
-  bulletList(['deterioro previo;','materiales debilitados;','mala construcción existente;','humedad o corrosión;','instalación anterior incorrecta;','falta de resistencia de la estructura.']);
-  paragraph('Si durante la remoción resulta dañada la mocheta, pared o área existente debido a sus condiciones previas, cualquier reparación será responsabilidad del cliente.');
-  paragraph('Adominium no está obligada a reconstruir, reparar o modificar estructuras existentes salvo que dicho trabajo sea cotizado expresamente.');
-
-  heading('CONDICIONES DE LA PROPIEDAD');
-  paragraph('El cliente reconoce que la propiedad puede presentar:');
-  bulletList(['paredes o mochetas fuera de escuadra;','desniveles;','aperturas irregulares;','deformaciones;','daños previos;','materiales deteriorados.']);
-  paragraph('Adominium no garantiza condiciones ideales de construcción.');
-  paragraph('Cualquier trabajo adicional necesario debido a condiciones existentes, reparaciones o modificaciones no incluidas podrá generar cargos adicionales.');
-
-  heading('INSTALACIÓN POR TERCEROS');
-  paragraph('Si el cliente o un tercero realiza la instalación, Adominium será responsable únicamente por fabricar el producto según las especificaciones aprobadas.');
-  paragraph('La instalación, ajustes, sellado, nivelación y funcionamiento final serán responsabilidad del instalador.');
-  paragraph('Adominium no será responsable por daños, filtraciones o fallas causadas por instalación realizada por terceros.');
-
-  heading('ENTREGA, RECOGIDO Y TRANSPORTE');
-  paragraph('La responsabilidad de Adominium dependerá del servicio contratado.');
-  paragraph('Cuando sea únicamente fabricación, la responsabilidad termina cuando el producto es recogido por el cliente o tercero autorizado.');
-  paragraph('Después del recogido, el cliente asume responsabilidad por transporte, manejo y almacenamiento.');
-  paragraph('Adominium no será responsable por daños causados durante:');
-  bulletList(['transporte realizado por el cliente;','transporte realizado por terceros;','carga o descarga realizada por personas ajenas a Adominium.']);
-  paragraph('Cuando Adominium realice transporte, será responsable mientras el producto esté bajo su manejo.');
-  paragraph('El cliente deberá inspeccionar el producto al momento de entrega o recogido.');
-  paragraph('Si el cliente no recoge el producto luego de ser notificado que está listo, podrán aplicarse cargos de almacenamiento.');
-
-  heading('SERVICIOS ADICIONALES');
-  paragraph('Instalación, transporte, desinstalación, disposición de escombros y trabajos adicionales son servicios independientes de la fabricación.');
-  paragraph('Solo serán incluidos si aparecen expresamente cotizados en este documento.');
-  paragraph('Cualquier trabajo adicional necesario durante el proyecto podrá generar cargos adicionales.');
-
-  heading('FECHA ESTIMADA DE ENTREGA O COMPLETADO');
-  paragraph('Fecha estimada: ' + (data.fechaEstimada || '—'));
-
-  heading('GARANTÍA');
-  paragraph('Adominium garantiza sus productos contra defectos de fabricación bajo uso normal por 6 meses luego de la instalación.');
-  paragraph('La garantía no cubre:');
-  bulletList(['daños por instalación de terceros;','golpes o mal uso;','modificaciones posteriores;','daños estructurales;','problemas de construcción existentes;','daños causados por factores externos.']);
-
-  heading('PROPIEDAD DEL PRODUCTO');
-  paragraph('Los productos permanecerán propiedad de Adominium hasta recibir el pago completo acordado.');
+  getContractClauses(deposit, balance, data.fechaEstimada).forEach(section=>{
+    heading(section.title);
+    section.blocks.forEach(b=>{
+      if(b.bullets){ bulletList(b.bullets); }
+      else{ paragraph(b.p, {bold: b.bold}); }
+    });
+  });
 
   // ---- SIGNATURE PAGE ----
   doc.addPage(); y = 60;
@@ -850,9 +902,6 @@ function generateFinalPDF(isInPerson){
 
   lastPdfBlob = doc.output('blob');
   lastPdfFilename = filename;
-  if(!isInPerson){
-    document.getElementById('shareRow').style.display = 'flex';
-  }
 
   // IMPORTANT: send the email copy BEFORE triggering the download.
   // On some mobile browsers, doc.save() navigates the current tab to
@@ -927,22 +976,6 @@ function sendCopyByEmail(data, blob, filename){
   }
 }
 
-async function shareFile(){
-  if(!lastPdfBlob){ toast('Genera el PDF primero'); return; }
-  const file = new File([lastPdfBlob], lastPdfFilename, {type:'application/pdf'});
-  if(navigator.canShare && navigator.canShare({files:[file]})){
-    try{
-      await navigator.share({
-        files:[file],
-        title:'Contrato firmado - Adominium',
-        text:'Aquí está mi contrato firmado.'
-      });
-    }catch(e){ /* user cancelled */ }
-  } else {
-    toast('Tu navegador no soporta compartir archivos. El PDF ya se descargó — envíalo por correo o WhatsApp manualmente.');
-  }
-}
-
 /* ---------------------------------------------------------
    INIT
 --------------------------------------------------------- */
@@ -950,5 +983,7 @@ document.getElementById('f_fecha').value = todayISO();
 addProductRow();
 initSignModeIfNeeded();
 </script>
+</body>
+</html>
 </body>
 </html>
