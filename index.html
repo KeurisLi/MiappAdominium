@@ -847,19 +847,26 @@ function generateFinalPDF(isInPerson){
   // ---- SAVE ----
   const safeName = (data.cliente||'cliente').replace(/[^a-z0-9]+/gi,'_');
   const filename = 'Contrato_Adominium_' + safeName + '.pdf';
-  doc.save(filename);
 
-  // keep blob for share button (remote mode only)
   lastPdfBlob = doc.output('blob');
   lastPdfFilename = filename;
   if(!isInPerson){
     document.getElementById('shareRow').style.display = 'flex';
   }
-  toast('PDF generado');
 
+  // IMPORTANT: send the email copy BEFORE triggering the download.
+  // On some mobile browsers, doc.save() navigates the current tab to
+  // show the PDF, which can kill a pending form submission if it
+  // hasn't been dispatched yet. Sending first, then delaying the
+  // download slightly, gives the request time to actually go out.
   if(data.ownerEmail){
     sendCopyByEmail(data, lastPdfBlob, filename);
   }
+
+  setTimeout(()=>{
+    doc.save(filename);
+    toast('PDF generado');
+  }, 600);
 }
 
 /* ---------------------------------------------------------
